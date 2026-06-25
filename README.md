@@ -10,7 +10,7 @@
 <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.x-blue.svg" alt="TypeScript" /></a>
 <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-7-blue.svg" alt="Vite" /></a>
 
-**A modern, powerful, and open-source desktop application for interactive 3D laptop keyboard simulation — built with React, Tauri, and Rust, with GitHub Actions for multi-platform builds and releases.**
+**A powerful cross-platform application for realistic keyboard simulation and visualization — built with React, Tauri, and Rust, with GitHub Actions for multi-platform builds and releases.**
 
 [Features](#-features) • [Installation](#-installation) • [Usage](#-usage-guide) • [Running & Building](#-running-the-application) • [GitHub Actions](#-github-actions-build--release) • [Icons](#-icons-generation) • [Contributing](#-contributing)
 
@@ -41,97 +41,120 @@
 
 ## 🌟 About
 
-**Keyboard Simulator** is a cross-platform desktop application that provides an interactive 3D visualization of laptop keyboards. Built with modern technologies like **Tauri**, **React**, **React Three Fiber**, and **Rust**, it offers a realistic keyboard simulation experience with real-time typing feedback, multiple keyboard models, and extensive customization options.
+**Keyboard Simulator** is a powerful cross-platform application that provides realistic keyboard simulation and visualization for a wide range of keyboard types. Designed for learning, demonstrations, presentations, accessibility testing, tutorials, keyboard exploration, and interactive experiences, it delivers an immersive environment with extensive customization and rich interactive features.
 
-Perfect for demonstrations, tutorials, accessibility testing, or simply exploring different keyboard layouts, Keyboard Simulator brings keyboard interaction to life with beautiful 3D graphics and smooth animations. The app runs as a native desktop shell via **Tauri 2** (Linux, Windows, macOS; Android and iOS planned) with a **React + TypeScript** frontend powered by **Vite 7**, and ships with a **GitHub Actions** workflow for multi-platform builds and releases, plus scripts for **icon generation** (desktop, Android, web).
+Built with modern technologies including **Tauri**, **React**, **React Three Fiber**, **TypeScript**, and **Rust**, Keyboard Simulator brings keyboard interaction to life through realistic rendering, real-time typing synchronization, beautiful animations, and highly interactive controls.
+
+Whether you're a student learning layouts, a teacher creating demonstrations, a developer testing interactions, a content creator producing tutorials, or someone exploring different keyboard styles, Keyboard Simulator offers a complete experience packed with powerful features.
+
+The application runs as a native desktop application through **Tauri 2** on Linux, Windows, and macOS, with Android and iOS support planned for future releases. It also includes automated multi-platform build pipelines, release workflows, and asset generation tools.
 
 ### Why Keyboard Simulator?
 
 - ✅ **Free and Open Source** — Licensed under AGPL-3.0
 - ✅ **Cross-Platform** — Works on Linux, Windows, and macOS (Android and iOS planned)
-- ✅ **Fast & Lightweight** — Built with Tauri and Rust for maximum performance
-- ✅ **3D Visualization** — Realistic 3D keyboard rendering with React Three Fiber
-- ✅ **Multiple Keyboard Models** — Support for various laptop keyboard layouts
-- ✅ **Real-time Interaction** — Live typing feedback and keyboard synchronization
-- ✅ **Privacy-Focused** — All data stored locally; no external servers
-- ✅ **Modern UI** — Beautiful, responsive design with 8 customizable themes
-- ✅ **Interactive Features** — Hand visualization, mouse controls, and system indicators
-- ✅ **CI/CD Ready** — One workflow to build .deb, .rpm, .AppImage, .exe, .msi, .apk, .aab
-- ✅ **Icon Pipeline** — Single SVG → desktop, Android adaptive, and web favicons
-- ✅ **Actively Maintained** — Regular updates and community support
+- ✅ **Fast & Lightweight** — Built with Rust and Tauri for excellent performance
+- ✅ **Realistic Keyboard Simulation** — Interactive visualization with smooth rendering
+- ✅ **Multiple Keyboard Types** — Support for various keyboard models and layouts
+- ✅ **Real-Time Synchronization** — Syncs with physical keyboard input instantly
+- ✅ **Learning & Education Friendly** — Great for teaching, learning, and tutorials
+- ✅ **Demonstration Ready** — Perfect for presentations and keyboard showcases
+- ✅ **Privacy Focused** — Everything stays local with no external servers
+- ✅ **Modern User Interface** — Beautiful design with customizable themes
+- ✅ **Highly Interactive** — Animated hands, indicators, and controls
+- ✅ **Extensive Customization** — Personalize appearance and behavior
+- ✅ **Multi-platform Build Support** — Automated release pipelines
+- ✅ **Active Development** — Regular improvements and feature additions
 
 ---
 
 ## ✨ Features
 
-### ⌨️ 3D Keyboard Visualization
-- **Multiple Keyboard Models** — Support for various laptop keyboard layouts:
-  - Asus UX370UAR
-  - Dell Latitude 5300 2-in-1
-  - Dell Latitude E7270
-  - HP EliteBook 820 G4
-  - Toshiba Portege X30-E
-- **Interactive 3D Rendering** — Powered by React Three Fiber for realistic keyboard visualization
-- **Real-time Key Press Feedback** — Visual feedback when keys are pressed
-- **Keyboard Synchronization** — Sync with your physical keyboard input
-- **Customizable View** — Rotate, zoom, and adjust keyboard perspective
+### ⌨️ Keyboard Simulation & Visualization
+
+- Realistic keyboard simulation experience
+- Support for multiple keyboard types and layouts
+- Real-time key press feedback
+- Physical keyboard synchronization
+- Interactive keyboard rendering
+- Adjustable camera controls
+- Zoom, rotate, and navigation controls
+- Multiple viewing perspectives
+
+### 🎓 Learning & Demonstration
+
+- Great for learning keyboard layouts
+- Educational typing demonstrations
+- Tutorial and presentation support
+- Accessibility testing
+- Interactive showcase environment
+- Visual typing guidance
 
 ### 📝 Document Editor
-- **Live Text Editor** — Type and see your text appear in real-time
-- **Caret Position Tracking** — Visual cursor position indicator
-- **Fullscreen Mode** — Focus on typing without distractions
-- **Save & Copy Functions** — Export your typed content easily
-- **Clear & Reset** — Start fresh with one click
 
-### 🎨 Customization & Themes
-- **Multiple Themes** — Choose from 8 beautiful color themes:
-  - Navy, Dark, Light, Sunset, Ocean, Forest, Purple Dream, Midnight
-- **Theme Switching** — Seamless theme transitions
-- **Responsive Design** — Optimized for various screen sizes
-- **Smooth Animations** — Powered by Framer Motion
+- Live text editor with real-time typing
+- Cursor and caret tracking
+- Fullscreen writing mode
+- Save and copy functions
+- Quick clear and reset tools
 
-### 🎮 Interactive Controls
-- **Hand Visualization** — See animated hands typing on the keyboard
-- **Mouse Controls** — Interactive mouse pointer visualization
-- **Arrow Key Indicators** — Visual feedback for arrow key presses
-- **Fn Shortcut Mode** — Toggle Fn key shortcuts
-- **Typing Hands** — Animated hands that follow your typing
+### 🎨 Themes & Customization
 
-### 🔒 Keyboard Lock States
-- **Caps Lock Indicator** — Visual LED indicator for Caps Lock
-- **Num Lock Indicator** — Visual LED indicator for Num Lock
-- **Scroll Lock Indicator** — Visual LED indicator for Scroll Lock
-- **Insert Mode Indicator** — Visual feedback for Insert mode
-- **Fn Lock/Hold** — Toggle Fn lock states
+- Multiple built-in themes
+- Custom appearance settings
+- Smooth transitions and animations
+- Responsive design
+- Modern interface experience
 
-### 💻 System State Indicators
-- **Battery Status** — Monitor battery level
-- **WiFi Status** — Connection indicator
-- **Bluetooth Status** — Bluetooth connection state
-- **Flight Mode** — Airplane mode indicator
-- **Microphone Status** — Mic on/off indicator
-- **Display Brightness** — Screen brightness controls
-- **Volume Control** — Audio level indicators
-- **Touchpad Status** — Touchpad enable/disable
+### 🎮 Interactive Features
+
+- Animated typing hands
+- Mouse interaction visualization
+- Arrow key indicators
+- Function key shortcut support
+- Dynamic keyboard interactions
+
+### 🔒 Keyboard States
+
+- Caps Lock indicator
+- Num Lock indicator
+- Scroll Lock indicator
+- Insert mode indicator
+- Function key states
+
+### 💻 System Indicators
+
+- Battery status
+- WiFi status
+- Bluetooth status
+- Flight mode
+- Microphone state
+- Brightness controls
+- Volume indicators
+- Touchpad status
 
 ### 🎯 Advanced Features
-- **Fullscreen Mode** — Immersive keyboard viewing experience
-- **Keyboard Sync** — Real-time synchronization with physical keyboard
-- **Reset View** — Quickly reset keyboard camera position
-- **Reset All** — Reset all settings to defaults
-- **About & License** — Project information and licensing details
+
+- Fullscreen immersive mode
+- Keyboard synchronization
+- View reset controls
+- Complete settings reset
+- Project information and licensing
 
 ### 📦 Build & Release
-- **GitHub Actions** — Manual workflow with inputs: version, prerelease, draft, and per-platform toggles (Linux, Windows, Android; macOS/iOS placeholders)
-- **Multi-arch** — Linux: x86_64, aarch64, armv7; Windows: x86_64, i686, aarch64; Android: all ABIs + AAB
-- **Checksums** — SHA256 and SHA512 for release assets
-- **Android** — APK (split per ABI) and AAB; optional keystore secrets for signing
 
-### 🎨 Icons
-- **Single source** — `public/favicon.svg` (or custom path)
-- **Tauri icon** — Desktop and Windows Store assets
-- **Android** — Adaptive icon with configurable background color and icon scale
-- **Web** — Favicons and apple-touch-icon copied to `public/`
+- Automated GitHub Actions workflows
+- Multi-platform build support
+- Multi-architecture releases
+- APK, AAB, AppImage, EXE, MSI, and more
+- Asset checksum generation
+
+### 🎨 Icon System
+
+- Single-source SVG icon generation
+- Desktop icons
+- Android adaptive icons
+- Web favicons and application assets
 
 ---
 

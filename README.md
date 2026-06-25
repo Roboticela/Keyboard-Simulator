@@ -2,18 +2,17 @@
 
 <img src="public/favicon.svg" alt="App Logo" width="128" />
 
-# Vite · Express · Tauri Template (DevKit)
+# Keyboard Simulator
 
-<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="AGPL License" /></a>
 <a href="https://tauri.app/"><img src="https://img.shields.io/badge/Tauri-2.x-blue.svg" alt="Tauri" /></a>
 <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/React-19-blue.svg" alt="React" /></a>
 <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.x-blue.svg" alt="TypeScript" /></a>
 <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-7-blue.svg" alt="Vite" /></a>
-<a href="https://expressjs.com/"><img src="https://img.shields.io/badge/Express-5-green.svg" alt="Express" /></a>
 
-**A full-stack template: React + Vite frontend, Express API server, and Tauri desktop/mobile apps — with GitHub Actions for multi-platform builds and releases.**
+**A modern, powerful, and open-source desktop application for interactive 3D laptop keyboard simulation — built with React, Tauri, and Rust, with GitHub Actions for multi-platform builds and releases.**
 
-[Features](#-features) • [Installation](#-installation) • [Running & Building](#-running-the-application) • [GitHub Actions](#-github-actions-build--release) • [Icons](#-icons-generation) • [Contributing](#-contributing)
+[Features](#-features) • [Installation](#-installation) • [Usage](#-usage-guide) • [Running & Building](#-running-the-application) • [GitHub Actions](#-github-actions-build--release) • [Icons](#-icons-generation) • [Contributing](#-contributing)
 
 ---
 
@@ -27,6 +26,7 @@
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
 - [Running the Application](#-running-the-application)
+- [Usage Guide](#-usage-guide)
 - [Building for Production](#-building-for-production)
 - [GitHub Actions (Build & Release)](#-github-actions-build--release)
 - [Icons Generation](#-icons-generation)
@@ -41,30 +41,85 @@
 
 ## 🌟 About
 
-**Vite-Express-Tauri-Template-DevKit** (Roboticela DevKit) is a production-ready starter for building cross-platform applications with a **React + TypeScript** frontend (Vite), an **Express** backend API, and **Tauri 2** for desktop (Linux, Windows, macOS) and mobile (Android; iOS coming soon). It includes a **GitHub Actions** workflow for building and releasing installers and packages across platforms, plus scripts for **icon generation** (desktop, Android, web).
+**Keyboard Simulator** is a cross-platform desktop application that provides an interactive 3D visualization of laptop keyboards. Built with modern technologies like **Tauri**, **React**, **React Three Fiber**, and **Rust**, it offers a realistic keyboard simulation experience with real-time typing feedback, multiple keyboard models, and extensive customization options.
 
-### Why This Template?
+Perfect for demonstrations, tutorials, accessibility testing, or simply exploring different keyboard layouts, Keyboard Simulator brings keyboard interaction to life with beautiful 3D graphics and smooth animations. The app runs as a native desktop shell via **Tauri 2** (Linux, Windows, macOS; Android and iOS planned) with a **React + TypeScript** frontend powered by **Vite 7**, and ships with a **GitHub Actions** workflow for multi-platform builds and releases, plus scripts for **icon generation** (desktop, Android, web).
 
-- ✅ **Full-Stack** — Frontend (Vite + React), API (Express), and native shells (Tauri)
-- ✅ **Cross-Platform** — Linux, Windows, macOS (desktop); Android (and iOS planned)
+### Why Keyboard Simulator?
+
+- ✅ **Free and Open Source** — Licensed under AGPL-3.0
+- ✅ **Cross-Platform** — Works on Linux, Windows, and macOS (Android and iOS planned)
+- ✅ **Fast & Lightweight** — Built with Tauri and Rust for maximum performance
+- ✅ **3D Visualization** — Realistic 3D keyboard rendering with React Three Fiber
+- ✅ **Multiple Keyboard Models** — Support for various laptop keyboard layouts
+- ✅ **Real-time Interaction** — Live typing feedback and keyboard synchronization
+- ✅ **Privacy-Focused** — All data stored locally; no external servers
+- ✅ **Modern UI** — Beautiful, responsive design with 8 customizable themes
+- ✅ **Interactive Features** — Hand visualization, mouse controls, and system indicators
 - ✅ **CI/CD Ready** — One workflow to build .deb, .rpm, .AppImage, .exe, .msi, .apk, .aab
 - ✅ **Icon Pipeline** — Single SVG → desktop, Android adaptive, and web favicons
-- ✅ **Version Patching** — Workflow patches version in `package.json`, `Cargo.toml`, `tauri.conf.json`, and server
-- ✅ **Android Signing** — Optional secrets for release signing or auto-generated keystore for testing
+- ✅ **Actively Maintained** — Regular updates and community support
 
 ---
 
 ## ✨ Features
 
-### 🖥️ Desktop & Web
-- **Vite 7** — Fast HMR and optimized production builds
-- **React 19** + **TypeScript** — Type-safe UI
-- **Tauri 2** — Small binaries, system WebView
-- **TailwindCSS 4** — Utility-first styling
+### ⌨️ 3D Keyboard Visualization
+- **Multiple Keyboard Models** — Support for various laptop keyboard layouts:
+  - Asus UX370UAR
+  - Dell Latitude 5300 2-in-1
+  - Dell Latitude E7270
+  - HP EliteBook 820 G4
+  - Toshiba Portege X30-E
+- **Interactive 3D Rendering** — Powered by React Three Fiber for realistic keyboard visualization
+- **Real-time Key Press Feedback** — Visual feedback when keys are pressed
+- **Keyboard Synchronization** — Sync with your physical keyboard input
+- **Customizable View** — Rotate, zoom, and adjust keyboard perspective
 
-### 🔧 Backend
-- **Express 5** — REST API server in `server/` (TypeScript, ts-node-dev for dev)
-- Separate `server/package.json` and build scripts: `server:dev`, `server:build`, `server:start`
+### 📝 Document Editor
+- **Live Text Editor** — Type and see your text appear in real-time
+- **Caret Position Tracking** — Visual cursor position indicator
+- **Fullscreen Mode** — Focus on typing without distractions
+- **Save & Copy Functions** — Export your typed content easily
+- **Clear & Reset** — Start fresh with one click
+
+### 🎨 Customization & Themes
+- **Multiple Themes** — Choose from 8 beautiful color themes:
+  - Navy, Dark, Light, Sunset, Ocean, Forest, Purple Dream, Midnight
+- **Theme Switching** — Seamless theme transitions
+- **Responsive Design** — Optimized for various screen sizes
+- **Smooth Animations** — Powered by Framer Motion
+
+### 🎮 Interactive Controls
+- **Hand Visualization** — See animated hands typing on the keyboard
+- **Mouse Controls** — Interactive mouse pointer visualization
+- **Arrow Key Indicators** — Visual feedback for arrow key presses
+- **Fn Shortcut Mode** — Toggle Fn key shortcuts
+- **Typing Hands** — Animated hands that follow your typing
+
+### 🔒 Keyboard Lock States
+- **Caps Lock Indicator** — Visual LED indicator for Caps Lock
+- **Num Lock Indicator** — Visual LED indicator for Num Lock
+- **Scroll Lock Indicator** — Visual LED indicator for Scroll Lock
+- **Insert Mode Indicator** — Visual feedback for Insert mode
+- **Fn Lock/Hold** — Toggle Fn lock states
+
+### 💻 System State Indicators
+- **Battery Status** — Monitor battery level
+- **WiFi Status** — Connection indicator
+- **Bluetooth Status** — Bluetooth connection state
+- **Flight Mode** — Airplane mode indicator
+- **Microphone Status** — Mic on/off indicator
+- **Display Brightness** — Screen brightness controls
+- **Volume Control** — Audio level indicators
+- **Touchpad Status** — Touchpad enable/disable
+
+### 🎯 Advanced Features
+- **Fullscreen Mode** — Immersive keyboard viewing experience
+- **Keyboard Sync** — Real-time synchronization with physical keyboard
+- **Reset View** — Quickly reset keyboard camera position
+- **Reset All** — Reset all settings to defaults
+- **About & License** — Project information and licensing details
 
 ### 📦 Build & Release
 - **GitHub Actions** — Manual workflow with inputs: version, prerelease, draft, and per-platform toggles (Linux, Windows, Android; macOS/iOS placeholders)
@@ -84,10 +139,10 @@
 
 | Layer        | Technology |
 |-------------|------------|
-| Frontend    | React 19, TypeScript 5.x, Vite 7, TailwindCSS 4, React Router 7 |
-| Backend     | Express 5 (Node.js) |
-| Desktop/Mobile | Tauri 2, Rust |
-| Tooling     | ESLint, npm |
+| Frontend    | [React 19](https://reactjs.org/), [TypeScript 5.x](https://www.typescriptlang.org/), [Vite 7](https://vitejs.dev/), [TailwindCSS 4](https://tailwindcss.com/), [Framer Motion 12](https://www.framer.com/motion/), [Lucide React](https://lucide.dev/) |
+| 3D Graphics | [React Three Fiber](https://docs.pmnd.rs/react-three-fiber/), [Three.js](https://threejs.org/), [@react-three/drei](https://github.com/pmndrs/drei) |
+| Desktop/Mobile | [Tauri 2](https://tauri.app/), [Rust](https://www.rust-lang.org/) |
+| Tooling     | ESLint, npm, PostCSS |
 
 ---
 
@@ -132,8 +187,8 @@ xcode-select --install
 ## 📥 Installation
 
 ```bash
-git clone https://github.com/Roboticela/Vite-Express-Tauri-Template-DevKit.git
-cd Vite-Express-Tauri-Template-DevKit
+git clone https://github.com/Roboticela/Keyboard-Simulator.git
+cd Keyboard-Simulator
 npm install
 ```
 
@@ -158,18 +213,76 @@ npm run tauri dev
 ```
 Starts Vite and opens the Tauri window with hot-reload.
 
-### Backend API only
-```bash
-npm run server:dev
-```
-Runs Express from `server/` with ts-node-dev (default port as in `server`).
+---
 
-### Web + backend together
-Run in two terminals:
-```bash
-npm run dev
-npm run server:dev
-```
+## 📚 Usage Guide
+
+### Getting Started
+
+1. **Launch the Application** — Open the built application or run in dev mode
+2. **Select Keyboard Model** — Choose from the available keyboard models in the header
+3. **Start Typing** — Use the document editor to type and see the keyboard respond
+4. **Explore Features** — Try different themes, enable hand visualization, and experiment with controls
+
+### Using the Keyboard Simulator
+
+1. **Select a Keyboard Model**
+   - Click the keyboard dropdown in the header
+   - Choose from: Asus UX370UAR, Dell Latitude 5300, Dell Latitude E7270, HP EliteBook 820 G4, or Toshiba Portege X30-E
+
+2. **Type in the Document Editor**
+   - The editor is located in the top section of the interface
+   - Type any text and watch the 3D keyboard respond
+   - Use the toolbar buttons to save, copy, or clear your text
+
+3. **Interact with the 3D Keyboard**
+   - Click on keys to see them press
+   - Rotate and zoom the keyboard view using mouse controls
+   - Enable keyboard sync to see your physical keyboard input reflected
+
+### Customization Options
+
+1. **Change Theme**
+   - Click the theme button in the header
+   - Select from 8 available themes (Navy, Dark, Light, Sunset, Ocean, Forest, Purple Dream, Midnight)
+
+2. **Enable Features**
+   - **Hand Visualization** — See animated hands typing
+   - **Mouse Controls** — Show mouse pointer visualization
+   - **Arrow Keys** — Visual feedback for arrow key presses
+   - **Fn Shortcut** — Toggle Fn key shortcuts
+   - **Typing Hands** — Animated hands that follow typing
+   - **Keyboard Sync** — Sync with physical keyboard input
+   - **Fullscreen** — Enter immersive fullscreen mode
+
+3. **View Status Indicators**
+   - Check the status controls panel for:
+     - Lock states (Caps Lock, Num Lock, Scroll Lock, Insert)
+     - System indicators (Battery, WiFi, Bluetooth, Flight Mode, etc.)
+     - Click indicators to toggle states
+
+### Keyboard Controls
+
+- **Rotate View** — Click and drag on the keyboard
+- **Zoom** — Use mouse wheel or pinch gesture
+- **Reset View** — Click "Reset View" button to restore default camera position
+- **Reset All** — Click "Reset" button to restore all settings to defaults
+
+### Fullscreen Mode
+
+1. Click the **Fullscreen** button in the header
+2. The keyboard will expand to fill the entire screen
+3. Press **Escape** to exit fullscreen mode
+
+### Menu Options
+
+Access additional options from the menu button:
+- **Story** — View the project story
+- **About** — Learn about the project
+- **GitHub** — Open the repository
+- **License** — View license information
+- **Privacy Policy** — Read privacy policy
+- **Terms of Service** — View terms of service
 
 ---
 
@@ -180,13 +293,6 @@ npm run server:dev
 npm run build
 ```
 Output: `dist/`.
-
-### Backend
-```bash
-npm run server:build
-npm run server:start
-```
-Output: `server/dist/`.
 
 ### Desktop (current platform)
 ```bash
@@ -266,7 +372,7 @@ Set at the top level of the workflow:
 
 | Variable | Example | Description |
 |----------|---------|-------------|
-| `APP_NAME` | `"Roboticela DevKit"` | Display name used in release title and Android signing DN |
+| `APP_NAME` | `"Keyboard Simulator"` | Display name used in release title and Android signing DN |
 | `NDK_VERSION` | `"27.0.12077973"` | Android NDK version installed via `sdkmanager` |
 | `NODE_VERSION` | `"24"` | Node version for `actions/setup-node` |
 
@@ -374,21 +480,61 @@ The script is interactive by default. For CI or scripts, you would need to eithe
 ## 📁 Project Structure
 
 ```
-Vite-Express-Tauri-Template-DevKit/
+Keyboard-Simulator/
 ├── .github/
 │   └── workflows/
 │       └── build-release.yml    # Build & release workflow
 ├── public/
 │   └── favicon.svg              # Default icon source for icons:generate
-├── server/                      # Express API
-│   ├── src/
-│   │   └── index.ts
-│   ├── package.json
-│   └── tsconfig.json
 ├── src/                         # React frontend
+│   ├── components/
+│   │   ├── Keyboard.tsx         # Main 3D keyboard component
+│   │   ├── DocumentEditor.tsx   # Text editor component
+│   │   ├── AppHeader.tsx        # Application header with controls
+│   │   ├── StatusControls.tsx   # Status indicators panel
+│   │   ├── AboutModal.tsx       # About dialog
+│   │   ├── LicenseModal.tsx     # License dialog
+│   │   ├── StoryModal.tsx       # Story dialog
+│   │   ├── ThemeScript.tsx      # Theme initialization
+│   │   ├── Asus-UX370UAR.tsx    # Asus keyboard model
+│   │   ├── Dell-Latitude-5300-2-in-1.tsx
+│   │   ├── Dell-Latitude-E7270.tsx
+│   │   ├── HP-EliteBook-820-G4.tsx
+│   │   ├── Toshiba-Portege-X30-E.tsx
+│   │   └── ui/                  # UI components (button, dropdown-menu)
+│   ├── contexts/                # React contexts for state management
+│   │   ├── ThemeContext.tsx     # Theme state
+│   │   ├── KeyboardTypeContext.tsx  # Keyboard model selection
+│   │   ├── KeyboardViewContext.tsx  # 3D view controls
+│   │   ├── KeyboardSyncContext.tsx  # Keyboard synchronization
+│   │   ├── KeyboardInputContext.tsx  # Keyboard input handling
+│   │   ├── KeyboardLockContext.tsx  # Lock states (Caps, Num, etc.)
+│   │   ├── HandContext.tsx      # Hand visualization
+│   │   ├── MouseContext.tsx     # Mouse controls
+│   │   ├── ArrowContext.tsx     # Arrow key controls
+│   │   ├── FnFunctionContext.tsx  # Fn function keys
+│   │   ├── FnShortcutContext.tsx  # Fn shortcuts
+│   │   ├── FullscreenContext.tsx  # Fullscreen mode
+│   │   └── SystemStateContext.tsx  # System indicators
+│   ├── lib/
+│   │   ├── keyboard-configs/    # Keyboard button configurations
+│   │   │   ├── asus-ux370uar.ts
+│   │   │   ├── dell-latitude-5300-2-in-1.ts
+│   │   │   ├── dell-latitude-e7270.ts
+│   │   │   ├── hp-elitebook-820-g4.ts
+│   │   │   ├── toshiba-portege-x30-e.ts
+│   │   │   └── index.ts
+│   │   ├── keyboard-button-types.ts  # TypeScript types
+│   │   └── utils.ts             # Utility functions
+│   ├── styles/                  # Component-specific styles
+│   │   ├── Asus-UX370UAR.css
+│   │   ├── Dell-Latitude-5300-2-in-1.css
+│   │   ├── Dell-Latitude-E7270.css
+│   │   ├── HP-EliteBook-820-G4.css
+│   │   └── Toshiba-Portege-X30-E.css
 │   ├── App.tsx
-│   ├── main.tsx
-│   └── ...
+│   ├── App.css
+│   └── main.tsx
 ├── src-tauri/                   # Tauri + Rust
 │   ├── src/
 │   │   ├── main.rs
@@ -399,6 +545,7 @@ Vite-Express-Tauri-Template-DevKit/
 │   │       ├── values/ic_launcher_background.xml
 │   │       ├── icon-options.json
 │   │       └── mipmap-*/        # Launcher & foreground PNGs
+│   ├── capabilities/
 │   ├── Cargo.toml
 │   ├── tauri.conf.json
 │   └── ...
@@ -424,8 +571,26 @@ Vite-Express-Tauri-Template-DevKit/
 - **`vite.config.ts`** — Vite and React plugin; dev server port (default 5173).
 - **`index.html`** — Title and favicon links (use `npm run icons:generate` to refresh favicons in `public/`).
 
-### Backend
-- **`server/`** — Port and environment in `server/src/index.ts` (or env vars as you add them).
+### Keyboard models
+Keyboard layouts are defined in `src/lib/keyboard-configs/`. Each keyboard model has its own configuration file that maps button IDs to key codes and visual properties.
+
+To add a new keyboard model:
+1. Create a new component in `src/components/` (e.g. `NewKeyboard.tsx`)
+2. Create a configuration file in `src/lib/keyboard-configs/`
+3. Add the keyboard to the `keyboards` array in `AppHeader.tsx`
+4. Export the configuration in `src/lib/keyboard-configs/index.ts`
+
+### Data storage
+The application stores user preferences and settings locally. No database is required.
+
+The app uses browser local storage (via Tauri's storage APIs) to persist:
+- Selected keyboard model
+- Theme preference
+- View settings (camera position, zoom level)
+- Feature toggles (hand visualization, mouse controls, etc.)
+- System state preferences
+
+All data is stored locally on your device and never transmitted to external servers.
 
 ### Version (for releases)
 The GitHub Actions workflow patches version in:
@@ -450,14 +615,39 @@ For local releases, keep these in sync manually or run your own patch step.
 
 ## 💬 Support
 
-- **Issues:** [GitHub Issues](https://github.com/Roboticela/Vite-Express-Tauri-Template-DevKit/issues) for bugs and feature requests.
-- **Repository:** [Roboticela/Vite-Express-Tauri-Template-DevKit](https://github.com/Roboticela/Vite-Express-Tauri-Template-DevKit).
+- **Website:** [keyboard-simulator.roboticela.com](https://keyboard-simulator.roboticela.com)
+- **Issues:** [GitHub Issues](https://github.com/Roboticela/Keyboard-Simulator/issues) for bugs and feature requests.
+- **Repository:** [Roboticela/Keyboard-Simulator](https://github.com/Roboticela/Keyboard-Simulator).
+
+When reporting a bug, please include your operating system, application version, steps to reproduce, expected vs actual behavior, screenshots (if applicable), and any error messages or logs.
+
+### FAQ
+
+**Q: Is this application free to use?**  
+A: Yes. It is completely free and open-source under the AGPL-3.0 license.
+
+**Q: Can I use this for commercial purposes?**  
+A: Yes, but you must comply with the AGPL-3.0 license terms. Any modifications used over a network must be made available to users.
+
+**Q: Does my data get sent to any servers?**  
+A: No. All data is stored locally on your device. The application works entirely offline.
+
+**Q: Can I add my own keyboard model?**  
+A: Yes. Create a new component and configuration file. See [Configuration](#-configuration) for details.
+
+**Q: Does keyboard sync work with all keyboards?**  
+A: Keyboard sync works with most standard keyboards. It captures keyboard events from your system and reflects them in the 3D visualization.
+
+**Q: Can I customize the keyboard appearance?**  
+A: Yes. You can change themes, and keyboard models are styled with CSS. Advanced customization requires modifying the component styles.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for the full text.
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See [LICENSE](LICENSE) for the full text.
+
+If you modify this software and make it available over a network (e.g. as a web service), you must provide access to the complete corresponding source code under the same license.
 
 ---
 
@@ -467,7 +657,7 @@ This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for t
    <img src="public/CompanyLogo.png" alt="Roboticela Logo" width="200" style="padding:30px;" />
 </div>
 
-**[Roboticela](https://github.com/Roboticela)** maintains this template for building cross-platform apps with Vite, Express, and Tauri. Star the repo if you find it useful.
+**[Roboticela](https://github.com/Roboticela)** maintains Keyboard Simulator — an open-source 3D keyboard simulation app built with React, Tauri, and Rust. Star the repo if you find it useful.
 
 ---
 
@@ -475,6 +665,6 @@ This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for t
 
 **Built with ❤️ by [Roboticela](https://github.com/Roboticela)**
 
-[⬆ Back to Top](#-vite--express--tauri-template-devkit)
+[⬆ Back to Top](#-keyboard-simulator)
 
 </div>

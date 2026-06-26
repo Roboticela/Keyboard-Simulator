@@ -95,7 +95,7 @@ export default function StoryModal({ isOpen, onClose }: StoryModalProps) {
                     transition={{ delay: 0.25 }}
                     className="text-foreground/90 text-sm sm:text-base leading-relaxed mb-4"
                   >
-                    It all started on a regular day when I was teaching <strong className="text-foreground">Sawaira Jaffar</strong> and <strong className="text-foreground">Sana Jaffar</strong>. We were working on understanding keyboards - everything from the different layouts to where the function keys are located, and even the proper way to position your fingers on the keys. But there was a big problem. We weren't all available at the same physical location. We needed to learn remotely, but without an actual keyboard in front of us, it was really difficult to explain and demonstrate everything properly.
+                    It all started on a regular day during a remote teaching session. We were working on understanding keyboards — everything from the different layouts to where the function keys are located, and even the proper way to position your fingers on the keys. But there was a big problem. We weren't all available at the same physical location. We needed to learn remotely, but without an actual keyboard in front of us, it was really difficult to explain and demonstrate everything properly.
                   </motion.p>
 
                   <motion.p
@@ -104,7 +104,7 @@ export default function StoryModal({ isOpen, onClose }: StoryModalProps) {
                     transition={{ delay: 0.3 }}
                     className="text-foreground/90 text-sm sm:text-base leading-relaxed mb-4"
                   >
-                    That's when the idea hit me. What if there was an app that could simulate a real keyboard? Something that anyone could access from anywhere, showing all the different aspects of a keyboard - the QWERTY layout, the function keys at the top, the number pad on the side, and even guidance on proper finger placement.
+                    That's when the idea hit me. What if there was an app that could simulate a real keyboard? Something that anyone could access from anywhere, showing all the different aspects of a keyboard — the QWERTY layout, the function keys at the top, the number pad on the side, and even guidance on proper finger placement.
                   </motion.p>
 
                   <motion.p
@@ -140,7 +140,7 @@ export default function StoryModal({ isOpen, onClose }: StoryModalProps) {
                     transition={{ delay: 0.5 }}
                     className="text-foreground/90 text-sm sm:text-base leading-relaxed"
                   >
-                    Looking back, it's funny how the best ideas come from real problems. I never imagined that a remote teaching session with Sawaira and Sana would lead to creating an actual application. But sometimes that's how it works - you face a challenge, and you figure out a solution that ends up helping way more people than you expected.
+                    Looking back, it's funny how the best ideas come from real problems. I never imagined that the challenge of teaching keyboard basics remotely would lead to creating an actual application. But sometimes that's how it works — you face a challenge, and you figure out a solution that ends up helping way more people than you expected.
                   </motion.p>
                 </div>
               </motion.div>

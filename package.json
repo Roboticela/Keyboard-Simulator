@@ -40,19 +40,27 @@
     "icons:generate": "node scripts/icons-generate.js"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@tailwindcss/vite": "^4.2.1",
+    "@tauri-apps/plugin-opener": "^2.5.4",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.42.0",
+    "lucide-react": "^1.21.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.1",
-    "tailwindcss": "^4.2.1"
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.2.1",
+    "three": "^0.185.0"
   },
   "overrides": {
     "esbuild": "0.28.1"
   },
   "devDependencies": {
-    "@types/node": "^22.15.21",
     "@eslint/js": "^9.29.0",
     "@tauri-apps/cli": "^2.10.1",
+    "@types/node": "^22.15.21",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.5.2",

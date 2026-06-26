@@ -1,0 +1,38 @@
+"use client";
+
+import { createContext, useContext, useState, ReactNode } from "react";
+
+interface SystemStateContextType {
+  flightMode: boolean;
+  setFlightMode: (enabled: boolean) => void;
+  toggleFlightMode: () => void;
+}
+
+const SystemStateContext = createContext<SystemStateContextType | undefined>(undefined);
+
+export function SystemStateProvider({ children }: { children: ReactNode }) {
+  const [flightMode, setFlightMode] = useState(false);
+
+  const toggleFlightMode = () => setFlightMode(prev => !prev);
+
+  return (
+    <SystemStateContext.Provider
+      value={{
+        flightMode,
+        setFlightMode,
+        toggleFlightMode,
+      }}
+    >
+      {children}
+    </SystemStateContext.Provider>
+  );
+}
+
+export function useSystemState() {
+  const context = useContext(SystemStateContext);
+  if (context === undefined) {
+    throw new Error("useSystemState must be used within a SystemStateProvider");
+  }
+  return context;
+}
+

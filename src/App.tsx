@@ -1,51 +1,76 @@
-import { useState } from 'react'
-import './App.css'
+import { useEffect } from "react";
+import { motion } from "framer-motion";
+import AppHeader from "@/components/AppHeader";
+import DocumentEditor from "@/components/DocumentEditor";
+import StatusControls from "@/components/StatusControls";
+import Keyboard from "@/components/Keyboard";
+import { useFullscreen } from "@/contexts/FullscreenContext";
+import { X } from "lucide-react";
 
 function App() {
-  const [count, setCount] = useState(0)
-  const appUrl = import.meta.env.VITE_APP_URL || '(not set)'
-  const apiUrl = import.meta.env.VITE_API_URL || '(not set)'
+  const { fullscreenEnabled, setFullscreenEnabled } = useFullscreen();
+
+  useEffect(() => {
+    if (!fullscreenEnabled) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setFullscreenEnabled(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [fullscreenEnabled, setFullscreenEnabled]);
+
+  if (fullscreenEnabled) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="fixed inset-0 bg-background z-50 overflow-hidden"
+      >
+        <motion.button
+          onClick={() => setFullscreenEnabled(false)}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="absolute top-4 right-4 z-50 p-2 rounded-lg border border-border bg-card/80 backdrop-blur-sm hover:bg-accent hover:border-primary/50 transition-all duration-200"
+          aria-label="Exit fullscreen"
+        >
+          <X className="w-5 h-5 text-foreground" />
+        </motion.button>
+        <div className="w-full h-full flex items-center justify-center p-4">
+          <Keyboard />
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
-    <>
-      <img src="/favicon.svg" alt="Roboticela DevKit" className="app-logo" />
-      <h1>Roboticela DevKit</h1>
-      <section
-        className="mx-auto mt-6 w-full max-w-xl border border-neutral-300 bg-neutral-50 px-4 py-3 text-left text-sm text-neutral-800 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
-        aria-labelledby="env-config-heading"
-      >
-        <h2 id="env-config-heading" className="mb-2 text-base font-semibold">
-          Build-time environment
-        </h2>
-        <dl className="grid gap-2 sm:grid-cols-[8rem_1fr] sm:gap-x-3 sm:gap-y-2">
-          <dt className="font-medium text-neutral-600 dark:text-neutral-400">APP_URL</dt>
-          <dd className="min-w-0 break-all font-mono text-neutral-900 dark:text-neutral-100">
-            {appUrl}
-            <span className="mt-0.5 block text-xs font-sans font-normal text-neutral-500 dark:text-neutral-400">
-              Frontend / app base URL (from <code className="font-mono">VITE_APP_URL</code> or{' '}
-              <code className="font-mono">APP_URL</code>)
-            </span>
-          </dd>
-          <dt className="font-medium text-neutral-600 dark:text-neutral-400">API_URL</dt>
-          <dd className="min-w-0 break-all font-mono text-neutral-900 dark:text-neutral-100">
-            {apiUrl}
-            <span className="mt-0.5 block text-xs font-sans font-normal text-neutral-500 dark:text-neutral-400">
-              Backend server URL (from <code className="font-mono">VITE_API_URL</code> or{' '}
-              <code className="font-mono">API_URL</code>)
-            </span>
-          </dd>
-        </dl>
-      </section>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+    <div className="min-h-screen bg-background overflow-x-hidden overflow-y-auto custom-scrollbar">
+      <AppHeader />
+      <div className="flex flex-col lg:flex-row gap-2 sm:gap-4 p-2 sm:p-4 min-h-[calc(100vh-3.5rem)] overflow-x-hidden overflow-y-auto">
+        <div className="flex-[0.8] flex flex-col gap-2 sm:gap-4 min-w-0">
+          <div className="flex-[0.3] min-h-0">
+            <DocumentEditor />
+          </div>
+          <div className="flex-[0.7] min-h-0">
+            <Keyboard />
+          </div>
+        </div>
+        <div className="flex-[0.2] min-w-0 lg:min-w-[200px]">
+          <StatusControls />
+        </div>
       </div>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
@@ -24,8 +24,8 @@ import { useSystemState } from '@/contexts/SystemStateContext';
 import { getKeyboardConfig } from '@/lib/keyboard-configs';
 
 // Generic component to detect hover and click on all keyboard buttons using actual DOM element positions
-function KeyboardButtonHoverDetector({ css3DRendererRef, css3DObjectRef }: { css3DRendererRef: React.MutableRefObject<CSS3DRenderer | null>, css3DObjectRef: React.MutableRefObject<CSS3DObject | null> }) {
-  const { gl, camera } = useThree();
+function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: React.MutableRefObject<CSS3DRenderer | null>, css3DObjectRef: React.MutableRefObject<CSS3DObject | null> }) {
+  const { gl } = useThree();
   const { theme } = useTheme();
   const { keyboardType } = useKeyboardType();
   const {
@@ -753,9 +753,6 @@ function KeyboardButtonHoverDetector({ css3DRendererRef, css3DObjectRef }: { css
           // Non-modifier key - get all modifier states before releasing
           const modifiers = getAllModifiers();
           
-          // Store Fn pressed state before releasing keys
-          const wasFnPressed = fnKeyPressedRef.current;
-          
           // Apply click effect FIRST for all non-modifier keys to show visual feedback immediately
           // This ensures F keys and other keys light up as soon as they're pressed
           pressedButtonRef.current = buttonUnderMouse;
@@ -805,14 +802,8 @@ function KeyboardButtonHoverDetector({ css3DRendererRef, css3DObjectRef }: { css
             const secondary = buttonConfig.secondary || '';
             
             // Always send the key if Ctrl/Cmd/Alt/Shift is pressed (for shortcuts)
-            const hasModifier = modifiers.ctrl || modifiers.meta || modifiers.alt || modifiers.shift;
             
             // For F keys: send primary when (fnLock enabled AND fn pressed) OR (fnLock disabled AND fn not pressed)
-            // Otherwise, fn function was already handled above
-            const isFKey = primary.startsWith('F') && /^F\d+$/.test(primary);
-            const shouldSendFKey = isFKey && ((fnLock && wasFnPressed) || (!fnLock && !wasFnPressed));
-            
-            // Always send keys for display - no skipping
             // For special keys that can be used in combinations, send the key name
             const specialKeysForCombos = ['Enter', 'Backspace', 'Delete', 'Tab', 'Home', 'End', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 'PrintScreen', 'Pause', 'Break', 'Escape', 'PageUp', 'PageDown', 'Insert', 'CapsLock', 'NumLock', 'ScrollLock', 'Shift', 'Control', 'Alt', 'Meta', 'Fn'];
             
@@ -1174,7 +1165,6 @@ function KeyboardSyncHandler() {
     toggleCapsLock,
     toggleNumLock,
     toggleScrollLock,
-    toggleFnLock,
   } = useKeyboardLock();
   const { handleFnFunction } = useFnFunction();
   const { flightMode } = useSystemState();
@@ -2057,7 +2047,7 @@ function Keyboard3D({ css3DRendererRef, containerRef }: { css3DRendererRef: Reac
   // Track last applied settings to avoid unnecessary updates
   const lastAppliedSettingsRef = useRef<{ scale: number; cameraX: number; cameraY: number; cameraZ: number; objectX: number; objectY: number; objectZ: number; screenWidth: number } | null>(null);
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (css3DRendererRef.current) {
       // Update CSS3DRenderer whenever the camera or scene changes
       // Sync with the WebGL renderer camera
@@ -2430,7 +2420,6 @@ function Keyboard3D({ css3DRendererRef, containerRef }: { css3DRendererRef: Reac
     const handleTouchStart = (e: TouchEvent) => {
       if (!css3DObjectRef.current) return;
       
-      const previousTouchCount = touchCountRef.current;
       touchCountRef.current = e.touches.length;
       
       if (e.touches.length === 1) {

@@ -600,7 +600,6 @@ export function DropdownMenuSubContent({
   open,
   onMouseEnter: onMouseEnterProp,
   onMouseLeave: onMouseLeaveProp,
-  menuItemClickedRef,
 }: {
   children: React.ReactNode;
   className?: string;

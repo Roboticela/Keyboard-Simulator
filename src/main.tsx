@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { HelmetProvider } from 'react-helmet-async'
 import App from './App.tsx'
 import "./App.css"
 
@@ -20,33 +21,35 @@ import { ThemeScript } from '@/components/ThemeScript'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeScript />
-    <ThemeProvider>
-      <HandProvider>
-        <FullscreenProvider>
-          <MouseProvider>
-            <ArrowProvider>
-              <KeyboardViewProvider>
-                <KeyboardSyncProvider>
-                  <KeyboardTypeProvider>
-                    <FnShortcutProvider>
-                      <KeyboardLockProvider>
-                        <KeyboardInputProvider>
-                          <FnFunctionProvider>
-                            <SystemStateProvider>
-                              <App />
-                            </SystemStateProvider>
-                          </FnFunctionProvider>
-                        </KeyboardInputProvider>
-                      </KeyboardLockProvider>
-                    </FnShortcutProvider>
-                  </KeyboardTypeProvider>
-                </KeyboardSyncProvider>
-              </KeyboardViewProvider>
-            </ArrowProvider>
-          </MouseProvider>
-        </FullscreenProvider>
-      </HandProvider>
-    </ThemeProvider>
+    <HelmetProvider>
+      <ThemeScript />
+      <ThemeProvider>
+        <HandProvider>
+          <FullscreenProvider>
+            <MouseProvider>
+              <ArrowProvider>
+                <KeyboardViewProvider>
+                  <KeyboardSyncProvider>
+                    <KeyboardTypeProvider>
+                      <FnShortcutProvider>
+                        <KeyboardLockProvider>
+                          <KeyboardInputProvider>
+                            <FnFunctionProvider>
+                              <SystemStateProvider>
+                                <App />
+                              </SystemStateProvider>
+                            </FnFunctionProvider>
+                          </KeyboardInputProvider>
+                        </KeyboardLockProvider>
+                      </FnShortcutProvider>
+                    </KeyboardTypeProvider>
+                  </KeyboardSyncProvider>
+                </KeyboardViewProvider>
+              </ArrowProvider>
+            </MouseProvider>
+          </FullscreenProvider>
+        </HandProvider>
+      </ThemeProvider>
+    </HelmetProvider>
   </StrictMode>,
 )

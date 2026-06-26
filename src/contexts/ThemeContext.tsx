@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
 export type ThemeName = "navy" | "dark" | "light" | "sunset" | "ocean" | "forest" | "purple" | "midnight";
 

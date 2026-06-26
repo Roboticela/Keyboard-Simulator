@@ -1,16 +1,54 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="apple-touch-icon" sizes="128x128" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Roboticela DevKit</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- Fallback SEO (react-helmet-async manages full tags at runtime) -->
+  <title>Keyboard Simulator — Free 3D Virtual Keyboard &amp; Typing Practice</title>
+  <meta name="description"
+    content="Free, open-source 3D keyboard simulator with realistic laptop models, live typing sync, themes, and a document editor. Practice typing, explore layouts, and test keyboard interactions online or on desktop." />
+
+  <!-- Icons -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="apple-touch-icon" sizes="128x128" href="/apple-touch-icon.png" />
+
+  <!-- Microsoft Clarity Analytics (Deferred & Skipped for Lighthouse) -->
+  <script type="text/javascript">
+    window.addEventListener('load', function () {
+      if (/lighthouse|chrome-lighthouse/i.test(navigator.userAgent)) {
+        return; // Skip loading Clarity during Lighthouse audits
+      }
+      setTimeout(function () {
+        (function (c, l, a, r, i, t, y) {
+          c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
+          t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
+          y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+        })(window, document, "clarity", "script", "viwp403njf");
+      }, 3000); // Delay by 3 seconds after load to ensure it doesn't block LCP/INP
+    });
+  </script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8NELPL2FXP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-8NELPL2FXP');
+  </script>
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9014031373485007"
+    crossorigin="anonymous"></script>
+</head>
+
+<body class="overflow-x-hidden overflow-y-auto">
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

@@ -34,6 +34,7 @@ import {
   Link2Off,
   ExternalLink,
   LifeBuoy,
+  BookMarked,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -135,14 +136,12 @@ export default function AppHeader() {
   const { keyboardType, setKeyboardType } = useKeyboardType();
   const { fnShortcutEnabled, setFnShortcutEnabled } = useFnShortcut();
   
-  // Map keyboardType to selectedKeyboard for display
-  const selectedKeyboard = keyboards.find(k => k.keyboardType === keyboardType)?.value || "asus-ux370uar";
   const currentKeyboardLabel = keyboards.find(k => k.keyboardType === keyboardType)?.label || "Asus UX370UAR";
   const [typingHandsEnabled, setTypingHandsEnabled] = useState(false);
   const [storyModalOpen, setStoryModalOpen] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
-  const [visibleButtons, setVisibleButtons] = useState<string[]>([]);
+  const [, setVisibleButtons] = useState<string[]>([]);
   const [menuButtons, setMenuButtons] = useState<string[]>([]);
   
   const headerRef = useRef<HTMLElement>(null);
@@ -813,11 +812,27 @@ export default function AppHeader() {
             <div className="h-px bg-border my-1" />
             <AnimatePresence>
               <motion.div
-                key="support"
+                key="guide"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2, delay: 0.2 }}
+              >
+                <DropdownMenuItem
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={() => openLink(`${ROBOTICELA_SITE_URL}/guide/keyboard-simulator`)}
+                >
+                  <BookMarked className="w-4 h-4" />
+                  <span>Guide</span>
+                  <ExternalLink className="w-3.5 h-3.5 ml-auto text-muted-foreground" />
+                </DropdownMenuItem>
+              </motion.div>
+              <motion.div
+                key="support"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2, delay: 0.25 }}
               >
                 <DropdownMenuItem
                   className="flex items-center gap-3 cursor-pointer"
@@ -833,7 +848,7 @@ export default function AppHeader() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2, delay: 0.25 }}
+                transition={{ duration: 0.2, delay: 0.3 }}
               >
                 <DropdownMenuItem
                   className="flex items-center gap-3 cursor-pointer"
@@ -849,7 +864,7 @@ export default function AppHeader() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2, delay: 0.3 }}
+                transition={{ duration: 0.2, delay: 0.35 }}
               >
                 <DropdownMenuItem
                   className="flex items-center gap-3 cursor-pointer"

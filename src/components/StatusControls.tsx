@@ -24,8 +24,6 @@ import {
   Plane,
   Mic,
   MicOff,
-  ZoomIn,
-  ZoomOut,
   Info,
 } from "lucide-react";
 
@@ -212,7 +210,7 @@ export default function StatusControls() {
   const [touchpad, setTouchpad] = useState(true);
   const [sleep, setSleep] = useState(false);
   const [lock, setLock] = useState(false);
-  const [screenOff, setScreenOff] = useState(false);
+  const [, setScreenOff] = useState(false);
   const [displayMode, setDisplayMode] = useState<DisplayMode>("pc-only");
   const [powerSaving, setPowerSaving] = useState(false);
   const [volume, setVolume] = useState(75);

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Maximize2, Minimize2, Save, Copy, Trash2 } from "lucide-react";
+import { Maximize2, Minimize2 } from "lucide-react";
 import { useKeyboardInput } from "@/contexts/KeyboardInputContext";
 
 interface DocumentEditorProps {

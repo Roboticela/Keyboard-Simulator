@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
+import Seo from "@/components/Seo";
 import AppHeader from "@/components/AppHeader";
 import DocumentEditor from "@/components/DocumentEditor";
 import StatusControls from "@/components/StatusControls";
@@ -27,13 +28,15 @@ function App() {
 
   if (fullscreenEnabled) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-        className="fixed inset-0 bg-background z-50 overflow-hidden"
-      >
+      <>
+        <Seo />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 bg-background z-50 overflow-hidden"
+        >
         <motion.button
           onClick={() => setFullscreenEnabled(false)}
           whileHover={{ scale: 1.02 }}
@@ -50,11 +53,13 @@ function App() {
           <Keyboard />
         </div>
       </motion.div>
+      </>
     );
   }
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden overflow-y-auto custom-scrollbar">
+      <Seo />
       <AppHeader />
       <div className="flex flex-col lg:flex-row gap-2 sm:gap-4 p-2 sm:p-4 min-h-[calc(100vh-3.5rem)] overflow-x-hidden overflow-y-auto">
         <div className="flex-[0.8] flex flex-col gap-2 sm:gap-4 min-w-0">

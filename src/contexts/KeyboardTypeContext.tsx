@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
 export type KeyboardType = "asus-ux370uar" | "dell-latitude-5300-2-in-1" | "dell-latitude-e7270" | "hp-elitebook-820-g4" | "toshiba-portege-x30-e";
 

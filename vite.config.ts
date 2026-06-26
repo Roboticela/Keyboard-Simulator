@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import Sitemap from 'vite-plugin-sitemap'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -13,6 +14,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, envDir, '')
   const appUrl = env.VITE_APP_URL ?? env.APP_URL ?? ''
   const apiUrl = env.VITE_API_URL ?? env.API_URL ?? ''
+  const siteUrl = (appUrl || 'https://keyboard-simulator.roboticela.com').replace(/\/$/, '')
 
   return {
     envDir,
@@ -25,7 +27,14 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_APP_URL': JSON.stringify(appUrl),
       'import.meta.env.VITE_API_URL': JSON.stringify(apiUrl),
     },
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      Sitemap({
+        hostname: siteUrl,
+        generateRobotsTxt: true,
+      }),
+    ],
 
     // Tauri (Android / iOS dev) must reach the Vite process from the device/emulator (e.g. 10.8.0.2:5173).
     // The default (localhost only) will hang with "Waiting for your frontend dev server" on mobile.

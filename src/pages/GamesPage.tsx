@@ -27,8 +27,10 @@ export default function GamesPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Helmet>
-        <title>Keyboard Games — {SITE_NAME}</title>
+      <Helmet
+        prioritizeSeoTags
+        title={`Keyboard Games — ${SITE_NAME}`}
+      >
         <meta
           name="description"
           content="Play 20 keyboard games including typing speed test, word sprint, key memory, and more. Improve your typing skills with fun challenges."

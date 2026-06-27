@@ -50,8 +50,10 @@ export default function GamePage() {
 
   return (
     <>
-      <Helmet>
-        <title>{game.title} — {SITE_NAME}</title>
+      <Helmet
+        prioritizeSeoTags
+        title={`${game.title} — ${SITE_NAME}`}
+      >
         <meta name="description" content={game.description} />
         <link rel="canonical" href={`${SITE_URL}/games/${slug}`} />
       </Helmet>

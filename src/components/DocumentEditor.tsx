@@ -77,6 +77,9 @@ const DocumentEditor = ({
   // Use refs to access current state values without causing re-subscriptions
   const textRef = useRef(text);
   const isOverwriteRef = useRef(isOverwrite);
+  // Tracks the intended cursor position synchronously so fast typing stays
+  // in order even when multiple setTimeout callbacks are still queued.
+  const intendedCursorPosRef = useRef(0);
   
   // Log mount / unmount
   useEffect(() => {
@@ -204,6 +207,7 @@ const DocumentEditor = ({
       if (isOverwrite && start < text.length && text[start] !== '\n') {
         const newText = text.substring(0, start) + e.key + text.substring(start + 1);
         dbg('handleKeyDown → printable (overwrite)', { key: e.key, start, nextPos: start + 1 });
+        intendedCursorPosRef.current = start + 1;
         setText(newText);
         setTimeout(() => {
           textarea.selectionStart = textarea.selectionEnd = start + 1;
@@ -214,6 +218,7 @@ const DocumentEditor = ({
       } else {
         const newText = text.substring(0, start) + e.key + text.substring(start);
         dbg('handleKeyDown → printable (insert)', { key: e.key, start, nextPos: start + 1 });
+        intendedCursorPosRef.current = start + 1;
         setText(newText);
         setTimeout(() => {
           textarea.selectionStart = textarea.selectionEnd = start + 1;
@@ -238,6 +243,7 @@ const DocumentEditor = ({
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     // Capture position NOW, before React's re-render resets selectionStart to 0
     const pos = e.target.selectionStart;
+    intendedCursorPosRef.current = pos;
     dbg('handleInput (onChange)', { pos, valueLength: e.target.value.length });
     setText(e.target.value);
     setTimeout(() => {
@@ -254,6 +260,7 @@ const DocumentEditor = ({
     setTimeout(() => {
       if (textareaRef.current) {
         const pos = textareaRef.current.selectionStart;
+        intendedCursorPosRef.current = pos;
         dbg('handleClick timer: setCursorPos', pos);
         setCursorPos(pos);
       }
@@ -363,9 +370,13 @@ const DocumentEditor = ({
     // Update last keypress display
     setLastKeyPress({ key, modifiers });
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const hasSelection = start !== end;
+    const domStart = textarea.selectionStart;
+    const domEnd = textarea.selectionEnd;
+    const hasSelection = domStart !== domEnd;
+    // For normal typing (no selection) use the intended position so rapid key presses
+    // stay in sequence even before previous setTimeout callbacks have run.
+    const start = hasSelection ? domStart : intendedCursorPosRef.current;
+    const end   = hasSelection ? domEnd   : intendedCursorPosRef.current;
     const ctrlOrMeta = modifiers?.ctrl || modifiers?.meta;
     const currentText = textRef.current;
     const currentIsOverwrite = isOverwriteRef.current;
@@ -402,6 +413,7 @@ const DocumentEditor = ({
       if (hasSelection) {
         navigator.clipboard.writeText(currentText.substring(start, end));
         const newText = currentText.substring(0, start) + currentText.substring(end);
+        intendedCursorPosRef.current = start;
         setText(newText);
         setTimeout(() => {
           textarea.selectionStart = textarea.selectionEnd = start;
@@ -417,10 +429,11 @@ const DocumentEditor = ({
     if (ctrlOrMeta && key.toLowerCase() === 'v') {
       dbg('vkp → Ctrl+V: paste start', { start, end });
       navigator.clipboard.readText().then(pastedText => {
+        const newPos = start + pastedText.length;
         const newText = currentText.substring(0, start) + pastedText + currentText.substring(end);
+        intendedCursorPosRef.current = newPos;
         setText(newText);
         setTimeout(() => {
-          const newPos = start + pastedText.length;
           textarea.selectionStart = textarea.selectionEnd = newPos;
           dbg('vkp → Ctrl+V timer: setCursorPos', newPos);
           setCursorPos(newPos);
@@ -444,6 +457,7 @@ const DocumentEditor = ({
       if (hasSelection) {
         dbg('vkp → Backspace: delete selection', { start, end });
         const newText = currentText.substring(0, start) + currentText.substring(end);
+        intendedCursorPosRef.current = start;
         setText(newText);
         setTimeout(() => {
           textarea.selectionStart = textarea.selectionEnd = start;
@@ -454,6 +468,7 @@ const DocumentEditor = ({
       } else if (start > 0) {
         dbg('vkp → Backspace: delete char at', start - 1);
         const newText = currentText.substring(0, start - 1) + currentText.substring(start);
+        intendedCursorPosRef.current = start - 1;
         setText(newText);
         setTimeout(() => {
           textarea.selectionStart = textarea.selectionEnd = start - 1;
@@ -472,6 +487,7 @@ const DocumentEditor = ({
       if (hasSelection) {
         dbg('vkp → Delete: delete selection', { start, end });
         const newText = currentText.substring(0, start) + currentText.substring(end);
+        intendedCursorPosRef.current = start;
         setText(newText);
         setTimeout(() => {
           textarea.selectionStart = textarea.selectionEnd = start;
@@ -482,6 +498,7 @@ const DocumentEditor = ({
       } else if (start < currentText.length) {
         dbg('vkp → Delete: delete char at', start);
         const newText = currentText.substring(0, start) + currentText.substring(start + 1);
+        intendedCursorPosRef.current = start;
         setText(newText);
         setTimeout(() => {
           textarea.selectionStart = textarea.selectionEnd = start;
@@ -497,7 +514,8 @@ const DocumentEditor = ({
 
     // Handle Enter
     if (key === 'Enter') {
-      dbg('vkp → Enter', { start, nextPos: start + 1 });
+      const enterPos = start + 1;
+      dbg('vkp → Enter', { start, nextPos: enterPos });
       setIsTyping(true);
       if (typingTimerRef.current) {
         clearTimeout(typingTimerRef.current);
@@ -505,13 +523,13 @@ const DocumentEditor = ({
       typingTimerRef.current = setTimeout(() => setIsTyping(false), 500);
 
       const newText = currentText.substring(0, start) + '\n' + currentText.substring(end);
+      intendedCursorPosRef.current = enterPos;
       setText(newText);
       setTimeout(() => {
-        const newPos = start + 1;
-        textarea.selectionStart = textarea.selectionEnd = newPos;
-        dbg('vkp → Enter timer: setCursorPos', newPos);
-        setCursorPos(newPos);
-        scrollCaretIntoView(newPos);
+        textarea.selectionStart = textarea.selectionEnd = enterPos;
+        dbg('vkp → Enter timer: setCursorPos', enterPos);
+        setCursorPos(enterPos);
+        scrollCaretIntoView(enterPos);
       }, 0);
       return;
     }
@@ -526,14 +544,15 @@ const DocumentEditor = ({
       typingTimerRef.current = setTimeout(() => setIsTyping(false), 500);
 
       const tabText = '  '; // 2 spaces for tab
+      const tabPos = start + tabText.length;
       const newText = currentText.substring(0, start) + tabText + currentText.substring(end);
+      intendedCursorPosRef.current = tabPos;
       setText(newText);
       setTimeout(() => {
-        const newPos = start + tabText.length;
-        textarea.selectionStart = textarea.selectionEnd = newPos;
-        dbg('vkp → Tab timer: setCursorPos', newPos);
-        setCursorPos(newPos);
-        scrollCaretIntoView(newPos);
+        textarea.selectionStart = textarea.selectionEnd = tabPos;
+        dbg('vkp → Tab timer: setCursorPos', tabPos);
+        setCursorPos(tabPos);
+        scrollCaretIntoView(tabPos);
       }, 0);
       return;
     }
@@ -542,6 +561,7 @@ const DocumentEditor = ({
     if (key === 'ArrowLeft') {
       const newPos = Math.max(0, start - 1);
       dbg('vkp → ArrowLeft', { from: start, to: newPos });
+      intendedCursorPosRef.current = newPos;
       textarea.selectionStart = textarea.selectionEnd = newPos;
       setCursorPos(newPos);
       scrollCaretIntoView(newPos);
@@ -551,6 +571,7 @@ const DocumentEditor = ({
     if (key === 'ArrowRight') {
       const newPos = Math.min(currentText.length, start + 1);
       dbg('vkp → ArrowRight', { from: start, to: newPos });
+      intendedCursorPosRef.current = newPos;
       textarea.selectionStart = textarea.selectionEnd = newPos;
       setCursorPos(newPos);
       scrollCaretIntoView(newPos);
@@ -568,6 +589,7 @@ const DocumentEditor = ({
         const newPos = currentText.substring(0, start).lastIndexOf('\n') - (lines[currentLine]?.length || 0) + newCol;
         const actualPos = Math.max(0, newPos);
         dbg('vkp → ArrowUp', { from: start, to: actualPos, currentLine });
+        intendedCursorPosRef.current = actualPos;
         textarea.selectionStart = textarea.selectionEnd = actualPos;
         setCursorPos(actualPos);
         scrollCaretIntoView(actualPos);
@@ -589,12 +611,14 @@ const DocumentEditor = ({
         const newCol = Math.min(currentCol, nextLine.length);
         const newPos = start + nextLineBreak + 1 + newCol;
         dbg('vkp → ArrowDown', { from: start, to: newPos, currentLine });
+        intendedCursorPosRef.current = newPos;
         textarea.selectionStart = textarea.selectionEnd = newPos;
         setCursorPos(newPos);
         scrollCaretIntoView(newPos);
       } else {
         const endPos = currentText.length;
         dbg('vkp → ArrowDown: no next line → end of doc', endPos);
+        intendedCursorPosRef.current = endPos;
         textarea.selectionStart = textarea.selectionEnd = endPos;
         setCursorPos(endPos);
         scrollCaretIntoView(endPos);
@@ -607,6 +631,7 @@ const DocumentEditor = ({
       const lines = currentText.substring(0, start).split('\n');
       const currentLineStart = start - (lines[lines.length - 1]?.length || 0);
       dbg('vkp → Home', { from: start, to: currentLineStart });
+      intendedCursorPosRef.current = currentLineStart;
       textarea.selectionStart = textarea.selectionEnd = currentLineStart;
       setCursorPos(currentLineStart);
       scrollCaretIntoView(currentLineStart);
@@ -621,6 +646,7 @@ const DocumentEditor = ({
       const nextLineBreak = remainingText.indexOf('\n');
       const lineEnd = nextLineBreak === -1 ? currentText.length : currentLineStart + nextLineBreak;
       dbg('vkp → End', { from: start, to: lineEnd });
+      intendedCursorPosRef.current = lineEnd;
       textarea.selectionStart = textarea.selectionEnd = lineEnd;
       setCursorPos(lineEnd);
       scrollCaretIntoView(lineEnd);
@@ -630,6 +656,7 @@ const DocumentEditor = ({
     // Handle PageUp (move to start of document)
     if (key === 'PageUp') {
       dbg('vkp → PageUp: jump to 0');
+      intendedCursorPosRef.current = 0;
       textarea.selectionStart = textarea.selectionEnd = 0;
       setCursorPos(0);
       scrollCaretIntoView(0);
@@ -640,6 +667,7 @@ const DocumentEditor = ({
     if (key === 'PageDown') {
       const endPos = currentText.length;
       dbg('vkp → PageDown: jump to end', endPos);
+      intendedCursorPosRef.current = endPos;
       textarea.selectionStart = textarea.selectionEnd = endPos;
       setCursorPos(endPos);
       scrollCaretIntoView(endPos);
@@ -655,22 +683,24 @@ const DocumentEditor = ({
       typingTimerRef.current = setTimeout(() => setIsTyping(false), 500);
 
       if (currentIsOverwrite && !hasSelection && start < currentText.length && currentText[start] !== '\n') {
-        dbg('vkp → printable (overwrite)', { key, start, nextPos: start + 1 });
+        const newPos = start + 1;
+        dbg('vkp → printable (overwrite)', { key, start, nextPos: newPos });
         const newText = currentText.substring(0, start) + key + currentText.substring(start + 1);
+        intendedCursorPosRef.current = newPos;
         setText(newText);
         setTimeout(() => {
-          const newPos = start + 1;
           textarea.selectionStart = textarea.selectionEnd = newPos;
           dbg('vkp → printable (overwrite) timer: setCursorPos', newPos);
           setCursorPos(newPos);
           scrollCaretIntoView(newPos);
         }, 0);
       } else {
-        dbg('vkp → printable (insert)', { key, start, nextPos: start + 1 });
+        const newPos = start + 1;
+        dbg('vkp → printable (insert)', { key, start, nextPos: newPos });
         const newText = currentText.substring(0, start) + key + currentText.substring(end);
+        intendedCursorPosRef.current = newPos;
         setText(newText);
         setTimeout(() => {
-          const newPos = start + 1;
           textarea.selectionStart = textarea.selectionEnd = newPos;
           dbg('vkp → printable (insert) timer: setCursorPos', newPos);
           setCursorPos(newPos);

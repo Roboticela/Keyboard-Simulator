@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createDebugLogger } from '@/lib/debug';
+
+const dbgKbd = createDebugLogger('Keyboard');
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
@@ -355,6 +358,9 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
   const pressedButtonRef = useRef<HTMLElement | null>(null);
   // Track if Fn key is currently held/pressed
   const fnKeyPressedRef = useRef<boolean>(false);
+  // Key-repeat timers (mimics real keyboard hold behaviour)
+  const repeatInitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const repeatTickTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Helper function to check if a button is a modifier key
   const isModifierKey = (buttonElement: HTMLElement): boolean => {
@@ -513,6 +519,43 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
     }
     // Clear toggled modifier keys when keyboard changes
     releaseAllModifierKeys();
+
+    // --- Key-repeat helpers (500 ms initial delay, 40 ms repeat rate) ---
+    const KEY_REPEAT_DELAY = 500;
+    const KEY_REPEAT_INTERVAL = 40;
+
+    const stopKeyRepeat = () => {
+      if (repeatInitTimerRef.current !== null) {
+        dbgKbd('stopKeyRepeat: clearing init timer');
+        clearTimeout(repeatInitTimerRef.current);
+        repeatInitTimerRef.current = null;
+      }
+      if (repeatTickTimerRef.current !== null) {
+        dbgKbd('stopKeyRepeat: clearing tick interval');
+        clearInterval(repeatTickTimerRef.current);
+        repeatTickTimerRef.current = null;
+      }
+    };
+
+    const startKeyRepeat = (action: () => void) => {
+      stopKeyRepeat();
+      dbgKbd('startKeyRepeat: scheduling first repeat in', KEY_REPEAT_DELAY, 'ms');
+      repeatInitTimerRef.current = setTimeout(() => {
+        repeatInitTimerRef.current = null;
+        dbgKbd('startKeyRepeat: firing first repeat, then every', KEY_REPEAT_INTERVAL, 'ms');
+        action();
+        repeatTickTimerRef.current = setInterval(() => {
+          dbgKbd('startKeyRepeat: repeat tick');
+          action();
+        }, KEY_REPEAT_INTERVAL);
+      }, KEY_REPEAT_DELAY);
+    };
+
+    // Global mouseup safety net: stop repeat even if the canvas mouseup is missed
+    // (e.g. when mouse is released outside the canvas or over another element)
+    const globalStopKeyRepeat = () => stopKeyRepeat();
+    document.addEventListener('mouseup', globalStopKeyRepeat);
+    // ------------------------------------------------------------------
 
     const handleMouseDown = (e: MouseEvent) => {
       if (buttonsRef.current.size === 0) return;
@@ -808,13 +851,21 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
             // For special keys that can be used in combinations, send the key name
             const specialKeysForCombos = ['Enter', 'Backspace', 'Delete', 'Tab', 'Home', 'End', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 'PrintScreen', 'Pause', 'Break', 'Escape', 'PageUp', 'PageDown', 'Insert', 'CapsLock', 'NumLock', 'ScrollLock', 'Shift', 'Control', 'Alt', 'Meta', 'Fn'];
             
+            // Build a repeatable fire function for this keypress, capturing all
+            // relevant state at mousedown time so repeats stay consistent.
+            let repeatFn: (() => void) | null = null;
+
             if (specialKeysForCombos.includes(primary)) {
               // Send the special key name directly (including F keys, modifiers, and lock keys)
               handleKeyPress(primary, modifiers);
+              const _primary = primary; const _mods = { ...modifiers };
+              repeatFn = () => handleKeyPress(_primary, _mods);
             } else if ((modifiers.ctrl || modifiers.meta || modifiers.alt) && primary.length === 1 && /[a-zA-Z]/.test(primary)) {
               // For letter keys with Ctrl/Alt/Meta modifiers (like Ctrl+A), send the lowercase key name
               // Note: Shift is handled separately in getCharacterToInsert
               handleKeyPress(primary.toLowerCase(), modifiers);
+              const _key = primary.toLowerCase(); const _mods = { ...modifiers };
+              repeatFn = () => handleKeyPress(_key, _mods);
             } else {
               // For printable characters, get the character to insert
               // This handles Shift and CapsLock correctly for both letters and symbols
@@ -835,10 +886,20 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
               
               if (characterToInsert !== null) {
                 handleKeyPress(characterToInsert, modifiers);
+                const _char = characterToInsert; const _mods = { ...modifiers };
+                repeatFn = () => handleKeyPress(_char, _mods);
               } else {
                 // Even if characterToInsert is null, send the primary key for display
                 handleKeyPress(primary, modifiers);
+                const _primary = primary; const _mods = { ...modifiers };
+                repeatFn = () => handleKeyPress(_primary, _mods);
               }
+            }
+
+            // Start hold-to-repeat for the key (modifier keys are handled above and don't reach here)
+            if (repeatFn) {
+              dbgKbd('handleMouseDown: starting key repeat for', buttonName);
+              startKeyRepeat(repeatFn);
             }
           }
         }
@@ -847,6 +908,8 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
 
     const handleMouseUp = (e: MouseEvent) => {
       if (e.button !== 0) return; // Only handle left mouse button
+
+      stopKeyRepeat();
 
       // Handle Fn key release
       if (pressedButtonRef.current) {
@@ -886,6 +949,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
 
     // Also handle mouseleave to ensure button is unclicked if mouse leaves canvas
     const handleMouseLeave = () => {
+      stopKeyRepeat();
       if (pressedButtonRef.current) {
         removeClickEffect(pressedButtonRef.current);
         pressedButtonRef.current = null;
@@ -898,6 +962,8 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
     gl.domElement.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
+      stopKeyRepeat();
+      document.removeEventListener('mouseup', globalStopKeyRepeat);
       gl.domElement.removeEventListener('mousedown', handleMouseDown);
       gl.domElement.removeEventListener('mouseup', handleMouseUp);
       gl.domElement.removeEventListener('mouseleave', handleMouseLeave);
@@ -1535,6 +1601,12 @@ function KeyboardSyncHandler() {
       return;
     }
 
+    // Non-modifier keys that should NOT repeat when held
+    const nonRepeatableKeys = new Set([
+      'CapsLock', 'NumLock', 'ScrollLock',
+      'Shift', 'Control', 'Alt', 'Meta', 'Fn',
+    ]);
+
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key;
       const code = e.code;
@@ -1557,7 +1629,43 @@ function KeyboardSyncHandler() {
         e.stopPropagation();
       }
 
-      // Skip if already processing this key
+      // OS-level key repeat: the browser fires keydown with e.repeat=true while a key is held.
+      // Forward these to handleKeyPress (without re-running visual/setup code) so the
+      // physical keyboard hold behaves like the virtual keyboard hold.
+      if (e.repeat) {
+        if (!nonRepeatableKeys.has(key) && pressedKeysRef.current.has(keyId)) {
+          const rModifiers = {
+            shift: e.shiftKey,
+            ctrl: e.ctrlKey,
+            alt: e.altKey,
+            meta: e.metaKey,
+            fn: realFnKeyPressedRef.current || fnHold || fnLock,
+            capsLock: capsLock,
+          };
+          const rButtonID = mapKeyToButtonID(key, code, rModifiers) || (isPrintScreen ? 'prtsc' : null);
+          if (rButtonID) {
+            const rKbConfig = getKeyboardConfig(keyboardType);
+            if (rKbConfig) {
+              const rBtnConfig = rKbConfig.find(btn => btn.id === rButtonID);
+              if (rBtnConfig) {
+                if (rModifiers.fn && rBtnConfig.fn && handleFnFunction) {
+                  handleFnFunction(rBtnConfig.fn);
+                } else {
+                  const rPrimary = rBtnConfig.primary;
+                  const rSecondary = rBtnConfig.secondary || '';
+                  const rKeyToSend = getCharacterToInsert(rPrimary, rSecondary, rModifiers.shift, rModifiers.capsLock);
+                  handleKeyPress(rKeyToSend ?? rPrimary, rModifiers);
+                }
+              }
+            }
+          } else if (isPrintScreen) {
+            handleKeyPress('PrintScreen', rModifiers);
+          }
+        }
+        return;
+      }
+
+      // Skip if already processing this key (first keydown only)
       if (pressedKeysRef.current.has(keyId)) return;
       pressedKeysRef.current.add(keyId);
 

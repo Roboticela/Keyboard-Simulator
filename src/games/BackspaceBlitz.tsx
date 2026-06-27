@@ -9,23 +9,14 @@ import { cn } from '@/lib/utils';
  * that many times to clear them and complete the round.
  */
 
-const PHRASES = [
-  'the quick brown fox',
-  'keyboard simulator',
-  'touch typing skills',
-  'hello world',
-  'practice every day',
-  'fast and accurate',
-  'muscle memory',
-  'react typescript',
-  'open source project',
-  'five dozen jugs',
-];
+import { SessionPool, PHRASE_POOL } from '@/lib/content';
+
+const phrasePool = new SessionPool(PHRASE_POOL);
 
 const TYPO_CHARS = 'xzqjwvk'.split('');
 
 function makeRound(roundNum: number) {
-  const phrase = PHRASES[Math.floor(Math.random() * PHRASES.length)];
+  const phrase = phrasePool.next();
   const typoCount = Math.min(1 + Math.floor(roundNum / 2), 5);
   const typos = Array.from({ length: typoCount }, () =>
     TYPO_CHARS[Math.floor(Math.random() * TYPO_CHARS.length)]

@@ -3,22 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface FnQuestion { key: string; correct: string; options: string[]; note: string; }
-
-const QUESTIONS: FnQuestion[] = [
-  { key: 'F1', correct: 'Help / Documentation', options: ['Save', 'Help / Documentation', 'Refresh', 'Open file'], note: 'F1 opens the Help menu or documentation in most applications.' },
-  { key: 'F2', correct: 'Rename selected item', options: ['Undo', 'Rename selected item', 'Search', 'Bold'], note: 'F2 renames the selected file or cell in Windows Explorer and Excel.' },
-  { key: 'F3', correct: 'Open search / Find', options: ['Open search / Find', 'Copy', 'New tab', 'Print'], note: 'F3 opens search or Find (like Ctrl+F) in many apps including Explorer.' },
-  { key: 'F4', correct: 'Open address bar (+ Alt = Close)', options: ['Open address bar (+ Alt = Close)', 'Fullscreen', 'Paste', 'Format'], note: 'F4 focuses the address bar in browsers; Alt+F4 closes the active window.' },
-  { key: 'F5', correct: 'Refresh / Reload', options: ['Screenshot', 'Refresh / Reload', 'Save', 'Run'], note: 'F5 refreshes the page in browsers and Windows Explorer.' },
-  { key: 'F6', correct: 'Focus address bar', options: ['Open new tab', 'Focus address bar', 'Find next', 'Bold'], note: 'F6 moves focus to the browser address bar (same as Ctrl+L in many browsers).' },
-  { key: 'F7', correct: 'Spell check (Word)', options: ['Spell check (Word)', 'Save all', 'Play/Pause', 'Properties'], note: 'F7 opens spell check in Microsoft Word and some other Office apps.' },
-  { key: 'F8', correct: 'Windows Safe Mode boot', options: ['Copy all', 'Windows Safe Mode boot', 'Bluetooth', 'Format drive'], note: 'Pressing F8 at startup on older Windows systems enters Safe Mode.' },
-  { key: 'F9', correct: 'Refresh fields (Word/Outlook)', options: ['Refresh fields (Word/Outlook)', 'Save', 'New window', 'Zoom'], note: 'F9 refreshes or updates fields in Microsoft Word and Outlook.' },
-  { key: 'F10', correct: 'Activate menu bar', options: ['Close tab', 'Mute audio', 'Activate menu bar', 'Print preview'], note: 'F10 activates the menu bar in most Windows applications.' },
-  { key: 'F11', correct: 'Toggle full screen', options: ['Toggle full screen', 'Zoom out', 'Show downloads', 'Open sidebar'], note: 'F11 toggles fullscreen mode in browsers and many applications.' },
-  { key: 'F12', correct: 'Open developer tools', options: ['Open settings', 'Save as', 'Open developer tools', 'Print'], note: 'F12 opens Developer Tools in all major browsers.' },
-];
+import { sampleFunctionKeyQuiz, getFunctionKeyQuestions, type FnQuestion } from '@/lib/content';
 
 type GameState = 'idle' | 'playing' | 'finished';
 
@@ -31,7 +16,7 @@ export default function FunctionKeyFinder() {
   const [answers, setAnswers] = useState<string[]>([]);
 
   const start = useCallback(() => {
-    setQuestions([...QUESTIONS].sort(() => Math.random() - 0.5));
+    setQuestions(sampleFunctionKeyQuiz(15));
     setCurrent(0); setSelected(null); setScore(0); setAnswers([]);
     setState('playing');
   }, []);
@@ -59,7 +44,9 @@ export default function FunctionKeyFinder() {
               <div key={k} className="w-10 h-10 rounded-lg border border-border/50 bg-accent/30 flex items-center justify-center text-xs font-mono text-foreground/50">{k}</div>
             ))}
           </div>
-          <p className="text-foreground/50 text-sm">Match each function key to its common use</p>
+          <p className="text-foreground/50 text-sm">
+            15 questions from {getFunctionKeyQuestions().length}+ function-key prompts
+          </p>
         </div>
       )}
 

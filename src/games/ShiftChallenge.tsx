@@ -3,18 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RotateCcw, CaseSensitive } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const CHALLENGES = [
-  'Hello, World! My name is Python3.',
-  'The price is $29.99 — that\'s 50% OFF!',
-  'Type: (A + B) * C / D = E',
-  'Email: User@Domain.com — URGENT!',
-  'JavaScript: let x = "Hello" + \'World\';',
-  'Press Ctrl+Shift+I to open DevTools!',
-  'HTTP Status: 404 Not Found (ERROR)',
-  'Formula: f(x) = 2x^2 + 3x - 7',
-  'Password: @Secure!2024#Complex$',
-  'SQL: SELECT * FROM "Users" WHERE id > 0;',
-];
+import { SessionPool, SHIFT_POOL } from '@/lib/content';
+
+const challengePool = new SessionPool(SHIFT_POOL);
 
 type GameState = 'idle' | 'playing' | 'finished';
 
@@ -28,9 +19,7 @@ export default function ShiftChallenge() {
   const [elapsed, setElapsed] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const pickChallenge = useCallback(() => {
-    return CHALLENGES[Math.floor(Math.random() * CHALLENGES.length)];
-  }, []);
+  const pickChallenge = useCallback(() => challengePool.next(), []);
 
   const start = useCallback(() => {
     setChallenge(pickChallenge());

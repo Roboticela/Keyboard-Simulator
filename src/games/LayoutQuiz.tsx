@@ -3,20 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RotateCcw, LayoutGrid, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface Question { q: string; options: string[]; answer: number; explanation: string; }
+import { getLayoutQuizQuestions, sampleLayoutQuiz } from '@/lib/content';
+import type { McqQuestion } from '@/lib/content';
 
-const QUESTIONS: Question[] = [
-  { q: 'Which keyboard layout places vowels on the left hand home row?', options: ['QWERTY', 'AZERTY', 'DVORAK', 'COLEMAK'], answer: 2, explanation: 'DVORAK (designed by August Dvorak in 1932) places vowels A, O, E, U, I on the left home row to reduce finger movement.' },
-  { q: 'AZERTY is primarily used in which country?', options: ['Germany', 'Spain', 'France', 'Italy'], answer: 2, explanation: 'AZERTY is the standard French keyboard layout, used mainly in France and Belgium (with slight variations).' },
-  { q: 'QWERTZ is the standard layout for which country?', options: ['Spain', 'Germany', 'Netherlands', 'Poland'], answer: 1, explanation: 'QWERTZ is used in German-speaking countries. Y and Z are swapped compared to QWERTY.' },
-  { q: 'Colemak was introduced in which year?', options: ['1998', '2003', '2006', '2010'], answer: 2, explanation: 'Colemak was introduced in 2006 as a modern alternative to QWERTY, designed to be easier to learn than Dvorak.' },
-  { q: 'Which layout is used for typing Russian?', options: ['AZERTY', 'JCUKEN', 'QWERTY', 'DVORAK'], answer: 1, explanation: 'JCUKEN (also written ЙЦУКЕН) is the standard layout for Russian Cyrillic keyboards.' },
-  { q: 'What distinguishes a Programmer Dvorak layout?', options: ['Extra function keys', 'Numbers require Shift, symbols are direct', 'No number row', 'Symbols on left side only'], answer: 1, explanation: 'Programmer Dvorak swaps numbers and symbols so commonly used programming symbols like brackets are on the base layer.' },
-  { q: 'The QWERTY layout was originally designed to solve what problem?', options: ['Increase typing speed', 'Prevent typewriter key jams', 'Reduce finger fatigue', 'Fit more keys'], answer: 1, explanation: 'QWERTY was designed by Sholes in 1874 to separate commonly used letter pairs and prevent mechanical typebar jams.' },
-  { q: 'Which layout is often considered optimal for programming?', options: ['QWERTY', 'AZERTY', 'DVORAK', 'Programmer Dvorak / Colemak'], answer: 3, explanation: 'Programmer Dvorak places programming symbols in convenient positions. Colemak is also popular among programmers.' },
-  { q: 'How many unique key positions does QWERTY share with Colemak?', options: ['12', '17', '20', '26'], answer: 1, explanation: 'Colemak keeps 17 keys in the same position as QWERTY, making it easier to learn than completely different layouts.' },
-  { q: 'Which is NOT a real keyboard layout?', options: ['BÉPO', 'MALTRON', 'WORKMAN', 'HEXTYPE'], answer: 3, explanation: 'BÉPO, MALTRON, and WORKMAN are all real alternative keyboard layouts. HEXTYPE is not a real layout.' },
-];
+type Question = McqQuestion;
 
 type GameState = 'idle' | 'playing' | 'finished';
 
@@ -29,7 +19,7 @@ export default function LayoutQuiz() {
   const [answers, setAnswers] = useState<number[]>([]);
 
   const start = useCallback(() => {
-    setQuestions([...QUESTIONS].sort(() => Math.random() - 0.5));
+    setQuestions(sampleLayoutQuiz(15));
     setCurrent(0); setSelected(null); setScore(0); setAnswers([]);
     setState('playing');
   }, []);
@@ -55,7 +45,9 @@ export default function LayoutQuiz() {
           <LayoutGrid className="w-16 h-16 text-border" />
           <div className="text-center">
             <h3 className="text-lg font-semibold text-foreground">Layout Quiz</h3>
-            <p className="text-foreground/50 text-sm mt-1">10 questions about keyboard layouts worldwide</p>
+            <p className="text-foreground/50 text-sm mt-1">
+              15 questions from {getLayoutQuizQuestions().length}+ layout questions
+            </p>
           </div>
         </div>
       )}

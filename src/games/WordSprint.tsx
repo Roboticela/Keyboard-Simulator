@@ -3,31 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RotateCcw, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const WORDS = [
-  'about','after','again','against','ago','all','also','although','always','among',
-  'another','any','around','back','because','before','being','between','both','bring',
-  'came','change','close','come','could','course','days','down','during','each',
-  'even','ever','every','face','fact','far','few','find','first','follow',
-  'found','full','gave','give','good','great','hand','help','here','high',
-  'himself','home','house','however','into','just','keep','know','large','last',
-  'left','less','light','like','little','live','long','look','made','make',
-  'many','might','more','most','much','must','name','need','never','next',
-  'night','only','open','over','past','people','place','point','quite','read',
-  'real','right','same','said','seem','show','since','small','some','still',
-  'such','take','than','that','their','them','then','there','these','they',
-  'think','time','told','took','turn','under','until','used','very','want',
-  'ways','well','were','when','which','while','with','within','without','word',
-  'work','world','would','year','your','able','above','across','almost','along',
-  'already','area','behind','body','book','build','call','care','carry','city',
-  'clear','door','draw','drive','early','earth','end','enough','example','eyes',
-  'feel','field','five','food','force','form','four','free','front','group',
-];
+import { SessionPool, WORDS } from '@/lib/content';
+
+const wordPool = new SessionPool(WORDS);
+
+function pickWord() {
+  return wordPool.next();
+}
 
 type GameState = 'idle' | 'playing' | 'finished';
-
-function pick(arr: string[]) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
 
 export default function WordSprint() {
   const [state, setState] = useState<GameState>('idle');
@@ -39,7 +23,7 @@ export default function WordSprint() {
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const nextWord = useCallback(() => setCurrent(pick(WORDS)), []);
+  const nextWord = useCallback(() => setCurrent(pickWord()), []);
 
   const start = useCallback(() => {
     setScore(0);

@@ -3,16 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RotateCcw, Flag, Trophy, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const SENTENCES = [
-  "The early bird catches the worm but the second mouse gets the cheese.",
-  "Not all those who wander are lost in the forests of time and space.",
-  "The only way to do great work is to love what you do every day.",
-  "Life is what happens when you are busy making other plans for the future.",
-  "The journey of a thousand miles begins with a single step forward.",
-  "Success is not final, failure is not fatal, it is the courage to continue that counts.",
-  "In the middle of difficulty lies opportunity for those who seek it with open eyes.",
-  "The best time to plant a tree was twenty years ago, the second best time is now.",
-];
+import { SessionPool, TYPING_SENTENCE_POOL } from '@/lib/content';
+
+const sentencePool = new SessionPool(TYPING_SENTENCE_POOL);
 
 type GameState = 'idle' | 'countdown' | 'playing' | 'won' | 'lost';
 
@@ -26,7 +19,7 @@ export default function TypingRace() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const start = useCallback(() => {
-    setSentence(SENTENCES[Math.floor(Math.random() * SENTENCES.length)]);
+    setSentence(sentencePool.next());
     setTyped('');
     setCountdown(3);
     setTimeLeft(30);

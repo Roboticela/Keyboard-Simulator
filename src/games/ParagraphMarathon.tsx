@@ -3,12 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RotateCcw, FileText, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const PARAGRAPHS = [
-  "Touch typing is the ability to type without looking at the keyboard. It is a skill that takes time and practice to develop but pays off enormously in productivity. The key is to keep your fingers on the home row and reach to other keys without moving your entire hand. With consistent practice, muscle memory forms and typing becomes effortless, allowing you to focus entirely on your thoughts rather than the mechanics of input.",
-  "The history of the keyboard dates back to the invention of the typewriter in the mid-nineteenth century. Christopher Latham Sholes patented the QWERTY layout in 1878 to prevent mechanical jamming of adjacent typebars. While the original mechanical constraints no longer apply to modern keyboards, the QWERTY layout has persisted due to the enormous inertia of trained typists worldwide and the high cost of retraining.",
-  "Mechanical keyboards have experienced a renaissance in recent years among enthusiasts and professionals. The tactile and auditory feedback from mechanical switches provides a more satisfying typing experience compared to membrane keyboards. Different switch types, such as linear, tactile, and clicky, cater to various preferences for feel and sound. Custom keyboard building has grown into a vibrant hobby with endless possibilities for personalization.",
-  "Ergonomic keyboard design aims to reduce repetitive strain injuries that can result from hours of typing. Split keyboards allow each hand to be positioned at a more natural angle, reducing wrist pronation. Ortholinear layouts arrange keys in a grid rather than staggered rows, which better matches finger movement patterns. With the right setup and proper technique, long typing sessions can remain comfortable and injury-free.",
-];
+import { SessionPool, PASSAGE_POOL } from '@/lib/content';
+
+const paragraphPool = new SessionPool(PASSAGE_POOL);
 
 type GameState = 'idle' | 'playing' | 'finished';
 
@@ -21,7 +18,7 @@ export default function ParagraphMarathon() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const start = useCallback(() => {
-    const p = PARAGRAPHS[Math.floor(Math.random() * PARAGRAPHS.length)];
+    const p = paragraphPool.next();
     setParagraph(p);
     setTyped('');
     setStartTime(Date.now());

@@ -3,13 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCcw, Play, Gauge } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const PASSAGES = [
-  "The keyboard is one of the most important tools for computer interaction. Touch typing allows users to type without looking at the keys, improving speed and efficiency significantly over time.",
-  "Programming requires precise typing skills and the ability to navigate complex syntax quickly. Practice with common code patterns helps developers become faster and more productive in their daily work.",
-  "The history of typewriters and keyboards spans over a century of innovation. From the early mechanical designs to modern mechanical switches, the keyboard has evolved to meet the needs of every user.",
-  "Speed typing is a skill that improves with consistent daily practice. Focus on accuracy first and let speed come naturally as your muscle memory strengthens through repetition and mindful effort.",
-  "Ergonomic keyboards are designed to reduce strain and fatigue during long typing sessions. Split layouts, tented bases, and wrist rests all contribute to a more comfortable typing experience.",
-];
+import { SessionPool, PASSAGE_POOL } from '@/lib/content';
+
+const passagePool = new SessionPool(PASSAGE_POOL);
 
 type GameState = 'idle' | 'playing' | 'finished';
 
@@ -23,7 +19,7 @@ export default function TypingSpeedTest() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const pickPassage = useCallback(() => {
-    setPassage(PASSAGES[Math.floor(Math.random() * PASSAGES.length)]);
+    setPassage(passagePool.next());
   }, []);
 
   const start = useCallback(() => {

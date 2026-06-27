@@ -3,25 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RotateCcw, HelpCircle, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface Question {
-  q: string;
-  options: string[];
-  answer: number;
-  explanation: string;
-}
+import { sampleKeyboardQuiz, getKeyboardQuizQuestions } from '@/lib/content';
+import type { McqQuestion } from '@/lib/content';
 
-const QUESTIONS: Question[] = [
-  { q: 'How many keys are on a standard 104-key keyboard?', options: ['101', '102', '104', '106'], answer: 2, explanation: 'The US standard 104-key keyboard has 104 keys including function keys, numpad, and navigation keys.' },
-  { q: 'Which keyboard layout is most common in English-speaking countries?', options: ['AZERTY', 'DVORAK', 'QWERTY', 'COLEMAK'], answer: 2, explanation: 'QWERTY has been the dominant layout since its introduction on the Sholes & Glidden typewriter in 1874.' },
-  { q: 'What is the "home row" on a QWERTY keyboard?', options: ['QWEASD', 'ASDF JKL;', 'ZXCVBNM', '1234567890'], answer: 1, explanation: 'The home row is ASDF JKL; — the row where fingers rest when touch typing.' },
-  { q: 'What does the "Print Screen" key do by default on Windows?', options: ['Print the page', 'Copy screen to clipboard', 'Open print dialog', 'Screenshot to file'], answer: 1, explanation: 'PrtScn copies the entire screen to the clipboard. Win+PrtScn saves to a file.' },
-  { q: 'How many function keys (F-keys) are on a standard keyboard?', options: ['10', '12', '14', '16'], answer: 1, explanation: 'Standard keyboards have 12 function keys: F1 through F12.' },
-  { q: 'Which key is located between Shift and Z on a QWERTY keyboard?', options: ['Caps Lock', 'Tab', 'Alt', 'There is no key there'], answer: 3, explanation: 'On a standard QWERTY layout there is no key between the left Shift key and Z.' },
-  { q: 'What does pressing Ctrl + A typically do?', options: ['Open a file', 'Select all', 'Save as', 'Bold text'], answer: 1, explanation: 'Ctrl+A selects all content in the current context — text, files, or items.' },
-  { q: 'The Scroll Lock key originated from which older function?', options: ['Scrolling spreadsheets', 'Locking the keyboard', 'Pausing output', 'Switching between monitors'], answer: 0, explanation: 'Scroll Lock was designed to scroll spreadsheet content using arrow keys without moving the cursor.' },
-  { q: 'Which key combination opens Task Manager on Windows?', options: ['Ctrl+Alt+Del', 'Ctrl+Shift+Esc', 'Win+R', 'Ctrl+Alt+Esc'], answer: 1, explanation: 'Ctrl+Shift+Esc opens Task Manager directly. Ctrl+Alt+Del opens the security screen which has Task Manager as one option.' },
-  { q: 'What is "actuation force" in the context of keyboard switches?', options: ['Typing speed', 'Force needed to register a keypress', 'Key travel distance', 'Noise level'], answer: 1, explanation: 'Actuation force (measured in grams or centinewtons) is the force required to register a key press.' },
-];
+type Question = McqQuestion;
 
 type GameState = 'idle' | 'playing' | 'finished';
 
@@ -34,7 +19,7 @@ export default function KeyboardQuiz() {
   const [shuffled, setShuffled] = useState<Question[]>([]);
 
   const start = useCallback(() => {
-    const qs = [...QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 10);
+    const qs = sampleKeyboardQuiz(15);
     setShuffled(qs);
     setCurrent(0);
     setSelected(null);
@@ -69,8 +54,10 @@ export default function KeyboardQuiz() {
         <div className="flex flex-col items-center justify-center min-h-[280px] rounded-2xl border border-border bg-card gap-4">
           <HelpCircle className="w-16 h-16 text-border" />
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground">10 Questions</h3>
-            <p className="text-foreground/50 text-sm mt-1">Test your keyboard hardware knowledge</p>
+            <h3 className="text-lg font-semibold text-foreground">15 Questions</h3>
+            <p className="text-foreground/50 text-sm mt-1">
+              Pool of {getKeyboardQuizQuestions().length}+ keyboard questions — new set every round
+            </p>
           </div>
         </div>
       )}

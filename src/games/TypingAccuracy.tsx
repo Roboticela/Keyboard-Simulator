@@ -3,18 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RotateCcw, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const SENTENCES = [
-  "The five boxing wizards jump quickly over the lazy brown fox.",
-  "Pack my box with five dozen liquor jugs before the show starts.",
-  "How vexingly quick daft zebras jump across the wide open plain.",
-  "Sphinx of black quartz, judge my vow before the sun goes down.",
-  "Waltz, bad nymph, for quick jigs vex every lazy person nearby.",
-  "Bright vixens jump; dozy fowl quack when the crazy dogs bark.",
-  "Quick wafting zephyrs vex bold Jim as he plays the fine lute.",
-  "The job requires extra pluck and zeal from every young quality worker.",
-  "Jack quietly moved up front and seized the big ball of wax.",
-  "Two driven jocks help fax my big quiz draft to every young club member.",
-];
+import { SessionPool, TYPING_SENTENCE_POOL } from '@/lib/content';
+
+const sentencePool = new SessionPool(TYPING_SENTENCE_POOL);
 
 type GameState = 'idle' | 'playing' | 'finished';
 
@@ -27,7 +18,7 @@ export default function TypingAccuracy() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const start = useCallback(() => {
-    const s = SENTENCES[Math.floor(Math.random() * SENTENCES.length)];
+    const s = sentencePool.next();
     setSentence(s);
     setTyped('');
     setStartTime(Date.now());

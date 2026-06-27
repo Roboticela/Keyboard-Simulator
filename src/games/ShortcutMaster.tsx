@@ -3,34 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, RotateCcw, Command, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface ShortcutQuestion {
-  shortcut: string;
-  correct: string;
-  options: string[];
-}
-
-const ALL_SHORTCUTS: ShortcutQuestion[] = [
-  { shortcut: 'Ctrl + C', correct: 'Copy', options: ['Cut', 'Copy', 'Paste', 'Close'] },
-  { shortcut: 'Ctrl + V', correct: 'Paste', options: ['Save', 'Undo', 'Paste', 'Print'] },
-  { shortcut: 'Ctrl + X', correct: 'Cut', options: ['Cut', 'Copy', 'Select All', 'Delete'] },
-  { shortcut: 'Ctrl + Z', correct: 'Undo', options: ['Redo', 'Zoom', 'Undo', 'Quit'] },
-  { shortcut: 'Ctrl + Y', correct: 'Redo', options: ['Undo', 'Redo', 'Save', 'Find'] },
-  { shortcut: 'Ctrl + A', correct: 'Select All', options: ['Open', 'Save As', 'Select All', 'Align'] },
-  { shortcut: 'Ctrl + S', correct: 'Save', options: ['Search', 'Save', 'Sort', 'Select'] },
-  { shortcut: 'Ctrl + F', correct: 'Find', options: ['Format', 'Find', 'Fullscreen', 'File'] },
-  { shortcut: 'Ctrl + P', correct: 'Print', options: ['Paste', 'Print', 'Properties', 'Preview'] },
-  { shortcut: 'Ctrl + N', correct: 'New', options: ['Next', 'New', 'Navigate', 'Nesting'] },
-  { shortcut: 'Ctrl + W', correct: 'Close tab/window', options: ['Close tab/window', 'New Window', 'Wrap text', 'Write'] },
-  { shortcut: 'Ctrl + T', correct: 'New tab', options: ['Toggle', 'New tab', 'Table', 'Text'] },
-  { shortcut: 'Ctrl + Shift + T', correct: 'Reopen closed tab', options: ['Reopen closed tab', 'New Tab', 'Terminal', 'Toggle theme'] },
-  { shortcut: 'Alt + Tab', correct: 'Switch window', options: ['Minimize', 'Switch window', 'Tab stop', 'Taskbar'] },
-  { shortcut: 'Alt + F4', correct: 'Close application', options: ['Close application', 'Force quit', 'Open file', 'Refresh'] },
-  { shortcut: 'Win + D', correct: 'Show desktop', options: ['Duplicate screen', 'Show desktop', 'Downloads', 'Delete'] },
-  { shortcut: 'Win + L', correct: 'Lock screen', options: ['Logout', 'Lock screen', 'Library', 'List'] },
-  { shortcut: 'Ctrl + Shift + I', correct: 'Developer tools', options: ['Italic', 'Insert', 'Developer tools', 'Inspect'] },
-  { shortcut: 'F5', correct: 'Refresh page', options: ['Screenshot', 'Save', 'Refresh page', 'Run'] },
-  { shortcut: 'F11', correct: 'Full screen', options: ['Zoom in', 'Full screen', 'Function menu', 'Find next'] },
-];
+import { sampleShortcutQuiz, SHORTCUT_COUNTS } from '@/lib/content';
+import type { ShortcutQuestion } from '@/lib/content';
 
 type GameState = 'idle' | 'playing' | 'finished';
 
@@ -43,7 +17,7 @@ export default function ShortcutMaster() {
   const [answers, setAnswers] = useState<string[]>([]);
 
   const start = useCallback(() => {
-    const qs = [...ALL_SHORTCUTS].sort(() => Math.random() - 0.5).slice(0, 10);
+    const qs = sampleShortcutQuiz(15);
     setQuestions(qs);
     setCurrent(0);
     setSelected(null);
@@ -65,6 +39,7 @@ export default function ShortcutMaster() {
   };
 
   const q = questions[current];
+  const counts = SHORTCUT_COUNTS();
 
   return (
     <div className="flex flex-col gap-4">
@@ -72,8 +47,11 @@ export default function ShortcutMaster() {
         <div className="flex flex-col items-center justify-center min-h-[280px] rounded-2xl border border-border bg-card gap-4">
           <Command className="w-16 h-16 text-border" />
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground">10 Shortcuts</h3>
-            <p className="text-foreground/50 text-sm mt-1">Identify what each keyboard shortcut does</p>
+            <h3 className="text-lg font-semibold text-foreground">15 Shortcuts</h3>
+            <p className="text-foreground/50 text-sm mt-1">
+              {counts.total}+ questions — Windows ({counts.windows}), macOS ({counts.macos}), Linux ({counts.linux})
+            </p>
+            <p className="text-foreground/50 text-sm mt-1">Identify what each shortcut does, or pick the right key combo</p>
           </div>
         </div>
       )}
@@ -90,17 +68,23 @@ export default function ShortcutMaster() {
 
           {/* Shortcut display */}
           <div className="flex flex-col items-center justify-center p-8 rounded-2xl border border-border bg-card gap-3">
+            <span className="text-xs font-semibold uppercase tracking-wider text-primary/80">{q.platform}</span>
             <p className="text-sm text-foreground/40">What does this shortcut do?</p>
-            <div className="flex items-center gap-2 flex-wrap justify-center">
-              {q.shortcut.split(' + ').map((part, i, arr) => (
-                <span key={i} className="flex items-center gap-2">
-                  <kbd className="px-3 py-2 rounded-lg border border-primary/40 bg-primary/10 text-primary font-mono font-bold text-lg shadow-sm">
-                    {part}
-                  </kbd>
-                  {i < arr.length - 1 && <span className="text-foreground/40 font-bold">+</span>}
-                </span>
-              ))}
-            </div>
+            {!q.shortcut.includes('how do you') && !q.shortcut.includes('Which shortcut') && (
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                {q.shortcut.split(' + ').map((part, i, arr) => (
+                  <span key={i} className="flex items-center gap-2">
+                    <kbd className="px-3 py-2 rounded-lg border border-primary/40 bg-primary/10 text-primary font-mono font-bold text-lg shadow-sm">
+                      {part}
+                    </kbd>
+                    {i < arr.length - 1 && <span className="text-foreground/40 font-bold">+</span>}
+                  </span>
+                ))}
+              </div>
+            )}
+            {(q.shortcut.includes('how do you') || q.shortcut.includes('Which shortcut')) && (
+              <p className="text-base font-medium text-foreground text-center max-w-md">{q.shortcut}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

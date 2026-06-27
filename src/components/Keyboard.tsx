@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import * as THREE from 'three';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import KeyboardLoader from './KeyboardLoader';
 import { AsusUX370UAR } from './Asus-UX370UAR';
 import { DellLatitude53002In1 } from './Dell-Latitude-5300-2-in-1';
 import { DellLatitudeE7270 } from './Dell-Latitude-E7270';
@@ -1845,7 +1846,29 @@ function KeyboardSyncHandler() {
   return null;
 }
 
-function Keyboard3D({ css3DRendererRef, containerRef }: { css3DRendererRef: React.MutableRefObject<CSS3DRenderer | null>, containerRef: React.MutableRefObject<HTMLDivElement | null> }) {
+const MIN_KEYBOARD_BUTTONS = 10;
+const READY_FRAME_THRESHOLD = 3;
+const KEYBOARD_READY_TIMEOUT_MS = 15000;
+
+function isKeyboardModelReady(css3DObject: CSS3DObject): boolean {
+  const element = css3DObject.element as HTMLElement | undefined;
+  if (!element) return false;
+
+  const keyboard = element.querySelector('.keyboard');
+  if (!keyboard) return false;
+
+  const buttons = keyboard.querySelectorAll('button[data-key-name]');
+  if (buttons.length < MIN_KEYBOARD_BUTTONS) return false;
+
+  if (css3DObject.scale.x <= 0) return false;
+
+  const sampleButton = keyboard.querySelector('[data-key-name="esc"], [data-key-name="a"], button') as HTMLElement | null;
+  if (!sampleButton || sampleButton.offsetWidth <= 0 || sampleButton.offsetHeight <= 0) return false;
+
+  return true;
+}
+
+function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3DRendererRef: React.MutableRefObject<CSS3DRenderer | null>, containerRef: React.MutableRefObject<HTMLDivElement | null>, onKeyboardReady?: () => void }) {
   const { scene, camera, size, gl } = useThree();
   const { handEnabled } = useHand();
   const { fullscreenEnabled } = useFullscreen();
@@ -1862,6 +1885,10 @@ function Keyboard3D({ css3DRendererRef, containerRef }: { css3DRendererRef: Reac
   const touchCountRef = useRef(0);
   const userHasModifiedViewRef = useRef(false);
   const lastCameraPositionRef = useRef<{ x: number; y: number; z: number } | null>(null);
+  const pendingKeyboardReadyRef = useRef(false);
+  const readyFrameCountRef = useRef(0);
+  const onKeyboardReadyRef = useRef(onKeyboardReady);
+  onKeyboardReadyRef.current = onKeyboardReady;
 
   // Get scale and camera position based on screen width and keyboard type
   // Separate settings for fullscreen and normal mode, and for each keyboard
@@ -1977,19 +2004,49 @@ function Keyboard3D({ css3DRendererRef, containerRef }: { css3DRendererRef: Reac
   };
 
   useEffect(() => {
-    // Wait a bit for CSS3DRenderer to be initialized
-    const timer = setTimeout(() => {
-      if (!css3DRendererRef.current || !containerRef.current) return;
+    let cancelled = false;
+    let settingsTimer: ReturnType<typeof setTimeout>;
+    let readyTimeout: ReturnType<typeof setTimeout>;
 
-      // Create element to hold the keyboard
+    pendingKeyboardReadyRef.current = true;
+    readyFrameCountRef.current = 0;
+
+    readyTimeout = setTimeout(() => {
+      if (!cancelled && pendingKeyboardReadyRef.current) {
+        pendingKeyboardReadyRef.current = false;
+        onKeyboardReadyRef.current?.();
+      }
+    }, KEYBOARD_READY_TIMEOUT_MS);
+
+    const mountKeyboard = (attempt = 0) => {
+      if (cancelled) return;
+
+      if (!css3DRendererRef.current || !containerRef.current) {
+        if (attempt < 20) {
+          setTimeout(() => mountKeyboard(attempt + 1), 50);
+        }
+        return;
+      }
+
       const keyboardElement = document.createElement('div');
       keyboardElement.style.width = '1200px';
       keyboardElement.style.height = '400px';
       keyboardElement.style.transformStyle = 'preserve-3d';
       keyboardElement.style.perspective = '1000px';
 
-      // Render the appropriate keyboard into the element
+      const css3DObject = new CSS3DObject(keyboardElement);
+      css3DObject.scale.set(0, 0, 0);
+      css3DObject.position.set(0, 0, 0);
+
+      const applyInitialSettings = () => {
+        const settings = getResponsiveSettings();
+        css3DObject.scale.set(settings.scale, settings.scale, settings.scale);
+        css3DObject.position.set(settings.objectX, settings.objectY, settings.objectZ);
+      };
+
       import('react-dom/client').then(({ createRoot }) => {
+        if (cancelled) return;
+
         const root = createRoot(keyboardElement);
         if (keyboardType === 'asus-ux370uar') {
           root.render(<AsusUX370UAR />);
@@ -2002,44 +2059,37 @@ function Keyboard3D({ css3DRendererRef, containerRef }: { css3DRendererRef: Reac
         } else if (keyboardType === 'toshiba-portege-x30-e') {
           root.render(<ToshibaPortegeX30E />);
         } else {
-          // Default to Asus if keyboard type is not recognized
           root.render(<AsusUX370UAR />);
         }
         rootRef.current = root;
+
+        css3DObject.rotation.x = -Math.PI / 8;
+        scene.add(css3DObject);
+        css3DObjectRef.current = css3DObject;
+
+        settingsTimer = setTimeout(() => {
+          if (cancelled) return;
+          applyInitialSettings();
+        }, 200);
       });
+    };
 
-      // Create CSS3D object with depth
-      const css3DObject = new CSS3DObject(keyboardElement);
-
-      // Set initial default values to 0 before responsive settings are applied
-      css3DObject.scale.set(0, 0, 0);
-      css3DObject.position.set(0, 0, 0);
-
-      // Set initial scale and position based on screen width
-      // Use a function to update settings after object is created
-      const applyInitialSettings = () => {
-        const settings = getResponsiveSettings();
-        css3DObject.scale.set(settings.scale, settings.scale, settings.scale);
-        css3DObject.position.set(settings.objectX, settings.objectY, settings.objectZ);
-      };
-
-      // Apply after a delay to allow responsive settings to take effect
-      setTimeout(() => {
-        applyInitialSettings();
-      }, 200);
-
-      css3DObject.rotation.x = -Math.PI / 8;
-      scene.add(css3DObject);
-      css3DObjectRef.current = css3DObject;
-    }, 100);
+    const timer = setTimeout(() => mountKeyboard(), 100);
 
     return () => {
+      cancelled = true;
+      pendingKeyboardReadyRef.current = false;
+      readyFrameCountRef.current = 0;
       clearTimeout(timer);
+      clearTimeout(settingsTimer);
+      clearTimeout(readyTimeout);
       if (rootRef.current) {
         rootRef.current.unmount();
+        rootRef.current = null;
       }
       if (css3DObjectRef.current) {
         scene.remove(css3DObjectRef.current);
+        css3DObjectRef.current = null;
       }
     };
   }, [scene, css3DRendererRef, containerRef, fullscreenEnabled, keyboardType]);
@@ -2052,6 +2102,19 @@ function Keyboard3D({ css3DRendererRef, containerRef }: { css3DRendererRef: Reac
       // Update CSS3DRenderer whenever the camera or scene changes
       // Sync with the WebGL renderer camera
       css3DRendererRef.current.render(scene, camera);
+    }
+
+    if (pendingKeyboardReadyRef.current && css3DObjectRef.current) {
+      if (isKeyboardModelReady(css3DObjectRef.current)) {
+        readyFrameCountRef.current += 1;
+        if (readyFrameCountRef.current >= READY_FRAME_THRESHOLD) {
+          pendingKeyboardReadyRef.current = false;
+          readyFrameCountRef.current = 0;
+          onKeyboardReadyRef.current?.();
+        }
+      } else {
+        readyFrameCountRef.current = 0;
+      }
     }
 
     // Detect if OrbitControls has changed the camera position (when hand mode is disabled)
@@ -2575,8 +2638,21 @@ function Keyboard3D({ css3DRendererRef, containerRef }: { css3DRendererRef: Reac
 
 export default function Keyboard() {
   const { handEnabled } = useHand();
+  const { keyboardType } = useKeyboardType();
+  const { fullscreenEnabled } = useFullscreen();
   const css3DRendererRef = useRef<CSS3DRenderer | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isKeyboardLoading, setIsKeyboardLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+
+  useEffect(() => {
+    setIsKeyboardLoading(true);
+  }, [keyboardType, fullscreenEnabled]);
+
+  const handleKeyboardReady = useCallback(() => {
+    setHasLoadedOnce(true);
+    setIsKeyboardLoading(false);
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -2633,6 +2709,15 @@ export default function Keyboard() {
       className="w-full h-full bg-card/40 backdrop-blur-md rounded-xl overflow-hidden min-h-[100px] sm:min-h-[150px] md:min-h-[200px] relative transition-all duration-300 ease-in-out"
       style={{ cursor: handEnabled ? 'grab' : 'default' }}
     >
+      <AnimatePresence>
+        {isKeyboardLoading && (
+          <KeyboardLoader
+            key={keyboardType}
+            keyboardType={keyboardType}
+            isSwitching={hasLoadedOnce}
+          />
+        )}
+      </AnimatePresence>
       <Canvas
         style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1, cursor: handEnabled ? 'grab' : 'default' }}
         gl={{ antialias: true }}
@@ -2642,7 +2727,7 @@ export default function Keyboard() {
         <ambientLight intensity={0.6} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <directionalLight position={[-10, 10, -5]} intensity={0.5} />
-        <Keyboard3D css3DRendererRef={css3DRendererRef} containerRef={containerRef} />
+        <Keyboard3D css3DRendererRef={css3DRendererRef} containerRef={containerRef} onKeyboardReady={handleKeyboardReady} />
         <OrbitControls
           enablePan={!handEnabled}
           enableZoom={true}

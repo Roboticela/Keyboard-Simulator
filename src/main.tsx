@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
+import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import "./App.css"
 
@@ -24,31 +25,33 @@ createRoot(document.getElementById('root')!).render(
     <HelmetProvider>
       <ThemeScript />
       <ThemeProvider>
-        <HandProvider>
-          <FullscreenProvider>
-            <MouseProvider>
-              <ArrowProvider>
-                <KeyboardViewProvider>
-                  <KeyboardSyncProvider>
-                    <KeyboardTypeProvider>
-                      <FnShortcutProvider>
-                        <KeyboardLockProvider>
-                          <KeyboardInputProvider>
-                            <FnFunctionProvider>
-                              <SystemStateProvider>
-                                <App />
-                              </SystemStateProvider>
-                            </FnFunctionProvider>
-                          </KeyboardInputProvider>
-                        </KeyboardLockProvider>
-                      </FnShortcutProvider>
-                    </KeyboardTypeProvider>
-                  </KeyboardSyncProvider>
-                </KeyboardViewProvider>
-              </ArrowProvider>
-            </MouseProvider>
-          </FullscreenProvider>
-        </HandProvider>
+        <BrowserRouter>
+          <HandProvider>
+            <FullscreenProvider>
+              <MouseProvider>
+                <ArrowProvider>
+                  <KeyboardViewProvider>
+                    <KeyboardSyncProvider>
+                      <KeyboardTypeProvider>
+                        <FnShortcutProvider>
+                          <KeyboardLockProvider>
+                            <KeyboardInputProvider>
+                              <FnFunctionProvider>
+                                <SystemStateProvider>
+                                  <App />
+                                </SystemStateProvider>
+                              </FnFunctionProvider>
+                            </KeyboardInputProvider>
+                          </KeyboardLockProvider>
+                        </FnShortcutProvider>
+                      </KeyboardTypeProvider>
+                    </KeyboardSyncProvider>
+                  </KeyboardViewProvider>
+                </ArrowProvider>
+              </MouseProvider>
+            </FullscreenProvider>
+          </HandProvider>
+        </BrowserRouter>
       </ThemeProvider>
     </HelmetProvider>
   </StrictMode>,

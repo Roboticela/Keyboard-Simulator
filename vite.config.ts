@@ -5,6 +5,15 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import Sitemap from 'vite-plugin-sitemap'
 
+const GAME_SLUGS = [
+  'typing-speed-test', 'word-sprint', 'typing-accuracy', 'home-row-hero',
+  'paragraph-marathon', 'typing-race', 'typing-stars', 'key-memory',
+  'symbol-smash', 'keyboard-quiz', 'shortcut-master', 'layout-quiz',
+  'function-key-finder', 'modifier-mash', 'key-reaction-time',
+  'key-location-trainer', 'n-key-rollover', 'number-pad-speed',
+  'shift-challenge', 'backspace-blitz',
+]
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vite.dev/config/
@@ -33,6 +42,10 @@ export default defineConfig(({ mode }) => {
       Sitemap({
         hostname: siteUrl,
         generateRobotsTxt: true,
+        dynamicRoutes: [
+          '/games',
+          ...GAME_SLUGS.map((slug) => `/games/${slug}`),
+        ],
       }),
     ],
 

@@ -12,6 +12,7 @@ import { useFnShortcut } from "@/contexts/FnShortcutContext";
 import StoryModal from "@/components/StoryModal";
 import AboutModal from "@/components/AboutModal";
 import LicenseModal from "@/components/LicenseModal";
+import GuideModal from "@/components/GuideModal";
 import { 
   Keyboard, 
   Palette, 
@@ -35,6 +36,7 @@ import {
   ExternalLink,
   LifeBuoy,
   BookMarked,
+  Gamepad2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -48,6 +50,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const themes: { name: ThemeName; label: string; colors: string }[] = [
   { name: "navy", label: "Navy", colors: "bg-blue-900" },
@@ -135,12 +138,16 @@ export default function AppHeader() {
   const { keyboardSyncEnabled, setKeyboardSyncEnabled } = useKeyboardSync();
   const { keyboardType, setKeyboardType } = useKeyboardType();
   const { fnShortcutEnabled, setFnShortcutEnabled } = useFnShortcut();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isOnGamesPage = location.pathname.startsWith('/games');
   
   const currentKeyboardLabel = keyboards.find(k => k.keyboardType === keyboardType)?.label || "Asus UX370UAR";
   const [typingHandsEnabled, setTypingHandsEnabled] = useState(false);
   const [storyModalOpen, setStoryModalOpen] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [, setVisibleButtons] = useState<string[]>([]);
   const [menuButtons, setMenuButtons] = useState<string[]>([]);
   
@@ -534,7 +541,7 @@ export default function AppHeader() {
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="w-full h-14 border-b border-border/40 bg-card/40 backdrop-blur-md flex items-center px-4 gap-4 overflow-hidden"
+      className="sticky top-0 z-40 w-full h-14 border-b border-border/40 bg-card/40 backdrop-blur-md flex items-center px-4 gap-4 overflow-hidden"
     >
       <motion.div 
         ref={leftSectionRef} 
@@ -547,13 +554,15 @@ export default function AppHeader() {
           <motion.img
             src="/favicon.svg"
             alt="Keyboard Simulator"
+            onClick={() => navigate('/')}
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ duration: 0.5, delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-8 h-8"
+            className="w-8 h-8 cursor-pointer"
           />
           <motion.h1 
-            className="text-lg font-bold text-foreground lg:hidden"
+            className="text-lg font-bold text-foreground lg:hidden cursor-pointer"
+            onClick={() => navigate('/')}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.3 }}
@@ -561,7 +570,8 @@ export default function AppHeader() {
             KbS
           </motion.h1>
           <motion.h1 
-            className="text-lg font-bold text-foreground hidden lg:block"
+            className="text-lg font-bold text-foreground hidden lg:block cursor-pointer"
+            onClick={() => navigate('/')}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.3 }}
@@ -569,6 +579,7 @@ export default function AppHeader() {
             Keyboard Simulator
           </motion.h1>
         </div>
+
       </motion.div>
 
       <motion.div 
@@ -743,11 +754,27 @@ export default function AppHeader() {
             )}
             <AnimatePresence>
               <motion.div
-                key="story"
+                key="games"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
+              >
+                <DropdownMenuItem
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={() => navigate('/games')}
+                >
+                  <Gamepad2 className="w-4 h-4" />
+                  <span>Games</span>
+                  {isOnGamesPage && <span className="ml-auto text-primary">✓</span>}
+                </DropdownMenuItem>
+              </motion.div>
+              <motion.div
+                key="story"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2, delay: 0.05 }}
               >
                 <DropdownMenuItem 
                   className="flex items-center gap-3 cursor-pointer"
@@ -808,9 +835,6 @@ export default function AppHeader() {
                   <span>License</span>
                 </DropdownMenuItem>
               </motion.div>
-            </AnimatePresence>
-            <div className="h-px bg-border my-1" />
-            <AnimatePresence>
               <motion.div
                 key="guide"
                 initial={{ opacity: 0, y: -10 }}
@@ -820,13 +844,15 @@ export default function AppHeader() {
               >
                 <DropdownMenuItem
                   className="flex items-center gap-3 cursor-pointer"
-                  onClick={() => openLink(`${ROBOTICELA_SITE_URL}/guide/keyboard-simulator`)}
+                  onClick={() => setGuideModalOpen(true)}
                 >
                   <BookMarked className="w-4 h-4" />
                   <span>Guide</span>
-                  <ExternalLink className="w-3.5 h-3.5 ml-auto text-muted-foreground" />
                 </DropdownMenuItem>
               </motion.div>
+            </AnimatePresence>
+            <div className="h-px bg-border my-1" />
+            <AnimatePresence>
               <motion.div
                 key="support"
                 initial={{ opacity: 0, y: -10 }}
@@ -888,6 +914,9 @@ export default function AppHeader() {
       
       {/* License Modal */}
       <LicenseModal isOpen={licenseModalOpen} onClose={() => setLicenseModalOpen(false)} />
+
+      {/* Guide Modal */}
+      <GuideModal isOpen={guideModalOpen} onClose={() => setGuideModalOpen(false)} />
     </motion.header>
   );
 }

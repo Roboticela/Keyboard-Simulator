@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, type ReactNode } from "react";
 
 interface KeyboardViewContextType {
   resetView: () => void;
@@ -10,31 +10,26 @@ interface KeyboardViewContextType {
 const KeyboardViewContext = createContext<KeyboardViewContextType | undefined>(undefined);
 
 export function KeyboardViewProvider({ children }: { children: ReactNode }) {
-  const [resetCallbacks, setResetCallbacks] = useState<Set<() => void>>(new Set());
+  const resetCallbacksRef = useRef<Set<() => void>>(new Set());
 
-  const registerResetCallback = (callback: () => void) => {
-    setResetCallbacks((prev) => {
-      const newSet = new Set(prev);
-      newSet.add(callback);
-      return newSet;
-    });
-
-    // Return unregister function
+  const registerResetCallback = useCallback((callback: () => void) => {
+    resetCallbacksRef.current.add(callback);
     return () => {
-      setResetCallbacks((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(callback);
-        return newSet;
-      });
+      resetCallbacksRef.current.delete(callback);
     };
-  };
+  }, []);
 
-  const resetView = () => {
-    resetCallbacks.forEach((callback) => callback());
-  };
+  const resetView = useCallback(() => {
+    resetCallbacksRef.current.forEach((callback) => callback());
+  }, []);
+
+  const value = useMemo(
+    () => ({ resetView, registerResetCallback }),
+    [resetView, registerResetCallback],
+  );
 
   return (
-    <KeyboardViewContext.Provider value={{ resetView, registerResetCallback }}>
+    <KeyboardViewContext.Provider value={value}>
       {children}
     </KeyboardViewContext.Provider>
   );
@@ -47,4 +42,3 @@ export function useKeyboardView() {
   }
   return context;
 }
-

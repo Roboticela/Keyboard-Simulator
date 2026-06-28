@@ -7,12 +7,14 @@ import DocumentEditor from "@/components/DocumentEditor";
 import StatusControls from "@/components/StatusControls";
 import Keyboard from "@/components/Keyboard";
 import { useFullscreen } from "@/contexts/FullscreenContext";
-import { X } from "lucide-react";
+import { useKeyboardView } from "@/contexts/KeyboardViewContext";
+import { X, RotateCcw } from "lucide-react";
 import GamesPage from "@/pages/GamesPage";
 import GamePage from "@/pages/GamePage";
 
 function MainPage() {
   const { fullscreenEnabled, setFullscreenEnabled } = useFullscreen();
+  const { resetView } = useKeyboardView();
 
   useEffect(() => {
     if (!fullscreenEnabled) return;
@@ -40,18 +42,33 @@ function MainPage() {
           transition={{ duration: 0.3 }}
           className="fixed inset-0 bg-background z-50 overflow-hidden"
         >
-          <motion.button
-            onClick={() => setFullscreenEnabled(false)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="absolute top-4 right-4 z-50 p-2 rounded-lg border border-border bg-card/80 backdrop-blur-sm hover:bg-accent hover:border-primary/50 transition-all duration-200"
-            aria-label="Exit fullscreen"
-          >
-            <X className="w-5 h-5 text-foreground" />
-          </motion.button>
+          <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+            <motion.button
+              onClick={() => resetView()}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="p-2 rounded-lg border border-border bg-card/80 backdrop-blur-sm hover:bg-accent hover:border-primary/50 transition-all duration-200"
+              aria-label="Reset view"
+              title="Reset view"
+            >
+              <RotateCcw className="w-5 h-5 text-foreground" />
+            </motion.button>
+            <motion.button
+              onClick={() => setFullscreenEnabled(false)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="p-2 rounded-lg border border-border bg-card/80 backdrop-blur-sm hover:bg-accent hover:border-primary/50 transition-all duration-200"
+              aria-label="Exit fullscreen"
+            >
+              <X className="w-5 h-5 text-foreground" />
+            </motion.button>
+          </div>
           <div className="w-full h-full flex items-center justify-center p-4">
             <Keyboard />
           </div>

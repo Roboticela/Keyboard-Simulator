@@ -2164,6 +2164,7 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
   const pendingKeyboardReadyRef = useRef(false);
   const readyFrameCountRef = useRef(0);
   const onKeyboardReadyRef = useRef(onKeyboardReady);
+  const orbitControlsRef = useRef<React.ComponentRef<typeof OrbitControls>>(null);
   onKeyboardReadyRef.current = onKeyboardReady;
 
   // Get scale and camera position based on screen width and keyboard type
@@ -2580,33 +2581,38 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
     };
   }, [size, camera, css3DObjectRef, fullscreenEnabled]);
 
-  // Register reset callback
+  // Register reset callback — restores default camera, object transform, and orbit controls
   useEffect(() => {
     const resetView = () => {
       if (!css3DObjectRef.current || !camera || !(camera instanceof THREE.PerspectiveCamera)) return;
 
-      // Reset user modification flag
       userHasModifiedViewRef.current = false;
+      isDraggingRef.current = false;
+      isRotatingRef.current = false;
+      touchStartRef.current = null;
+      touchCountRef.current = 0;
+      gl.domElement.style.cursor = handEnabled ? 'grab' : 'default';
 
-      // Get default settings
       const settings = getResponsiveSettings();
 
-      // Reset object position, scale, and rotation
-      if (css3DObjectRef.current) {
-        css3DObjectRef.current.scale.set(settings.scale, settings.scale, settings.scale);
-        css3DObjectRef.current.position.set(settings.objectX, settings.objectY, settings.objectZ);
-        css3DObjectRef.current.rotation.x = -Math.PI / 8;
-        css3DObjectRef.current.rotation.y = 0;
-        css3DObjectRef.current.rotation.z = 0;
-      }
+      css3DObjectRef.current.scale.set(settings.scale, settings.scale, settings.scale);
+      css3DObjectRef.current.position.set(settings.objectX, settings.objectY, settings.objectZ);
+      css3DObjectRef.current.rotation.x = -Math.PI / 8;
+      css3DObjectRef.current.rotation.y = 0;
+      css3DObjectRef.current.rotation.z = 0;
 
-      // Reset camera position
-      camera.position.x = settings.cameraX;
-      camera.position.y = settings.cameraY;
-      camera.position.z = settings.cameraZ;
+      camera.position.set(settings.cameraX, settings.cameraY, settings.cameraZ);
       camera.updateProjectionMatrix();
 
-      // Update last applied settings
+      const controls = orbitControlsRef.current;
+      if (controls) {
+        controls.target.set(0, 0, 0);
+        controls.object.position.set(settings.cameraX, settings.cameraY, settings.cameraZ);
+        controls.object.updateProjectionMatrix();
+        controls.update();
+        controls.saveState();
+      }
+
       lastAppliedSettingsRef.current = {
         scale: settings.scale,
         cameraX: settings.cameraX,
@@ -2615,20 +2621,19 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
         objectX: settings.objectX,
         objectY: settings.objectY,
         objectZ: settings.objectZ,
-        screenWidth: window.innerWidth
+        screenWidth: window.innerWidth,
       };
 
-      // Update last camera position
       lastCameraPositionRef.current = {
         x: settings.cameraX,
         y: settings.cameraY,
-        z: settings.cameraZ
+        z: settings.cameraZ,
       };
     };
 
     const unregister = registerResetCallback(resetView);
     return unregister;
-  }, [registerResetCallback, camera, css3DObjectRef, fullscreenEnabled, keyboardType]);
+  }, [registerResetCallback, camera, css3DObjectRef, fullscreenEnabled, keyboardType, handEnabled, gl]);
 
   useEffect(() => {
     // Reset dragging/rotating states when handEnabled changes
@@ -2926,6 +2931,21 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
     <>
       <KeyboardButtonHoverDetector css3DRendererRef={css3DRendererRef} css3DObjectRef={css3DObjectRef} />
       <KeyboardSyncHandler />
+      <OrbitControls
+        ref={orbitControlsRef}
+        enablePan={!handEnabled}
+        enableZoom={true}
+        enableRotate={!handEnabled}
+        minDistance={0.1}
+        maxDistance={Infinity}
+        enableDamping={true}
+        dampingFactor={0.05}
+        rotateSpeed={0.5}
+        zoomSpeed={0.8}
+        panSpeed={0.8}
+        target={[0, 0, 0]}
+        autoRotate={false}
+      />
     </>
   );
 }
@@ -3066,20 +3086,6 @@ export default function Keyboard() {
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <directionalLight position={[-10, 10, -5]} intensity={0.5} />
         <Keyboard3D css3DRendererRef={css3DRendererRef} containerRef={containerRef} onKeyboardReady={handleKeyboardReady} />
-        <OrbitControls
-          enablePan={!handEnabled}
-          enableZoom={true}
-          enableRotate={!handEnabled}
-          minDistance={0.1}
-          maxDistance={Infinity}
-          enableDamping={true}
-          dampingFactor={0.05}
-          rotateSpeed={0.5}
-          zoomSpeed={0.8}
-          panSpeed={0.8}
-          target={[0, 0, 0]}
-          autoRotate={false}
-        />
       </Canvas>
     </motion.div>
   );

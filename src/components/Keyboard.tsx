@@ -161,7 +161,6 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
     toggleCapsLock,
     toggleNumLock,
     toggleScrollLock,
-    toggleInsert,
     toggleFnLock,
     toggleFnHold,
   } = useKeyboardLock();
@@ -853,7 +852,6 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
           'capslock': toggleCapsLock,
           'numlock': toggleNumLock,
           'scroll-lock': toggleScrollLock,
-          'insert': toggleInsert,
         };
 
         const lockToggle = lockKeyMap[effectiveKeyName];
@@ -869,7 +867,6 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
             'capslock': 'CapsLock',
             'numlock': 'NumLock',
             'scroll-lock': 'ScrollLock',
-            'insert': 'Insert',
           };
           if (lockKeyDisplayMap[effectiveKeyName]) {
             displayKeyName = lockKeyDisplayMap[effectiveKeyName];
@@ -1528,6 +1525,32 @@ function KeyboardSyncHandler() {
     return null;
   };
 
+  // Resolve a mapped button id against the active keyboard config (handles ins/insert, del/delete, etc.)
+  const resolveConfigButtonId = (
+    keyboardConfig: ReturnType<typeof getKeyboardConfig>,
+    candidateId: string,
+    primaryKey?: string,
+  ): string => {
+    if (!keyboardConfig) return candidateId;
+    if (keyboardConfig.some(btn => btn.id === candidateId)) return candidateId;
+    if (primaryKey) {
+      const byPrimary = keyboardConfig.find(btn => btn.primary === primaryKey);
+      if (byPrimary) return byPrimary.id;
+    }
+    const aliasGroups = [
+      ['ins', 'insert'],
+      ['del', 'delete'],
+      ['scrolllock', 'scroll-lock'],
+    ];
+    for (const group of aliasGroups) {
+      if (!group.includes(candidateId)) continue;
+      for (const alt of group) {
+        if (keyboardConfig.some(btn => btn.id === alt)) return alt;
+      }
+    }
+    return candidateId;
+  };
+
   // Map browser KeyboardEvent key to virtual keyboard button ID
   const mapKeyToButtonID = (key: string, code: string, modifiers: { shift: boolean; ctrl: boolean; alt: boolean; meta: boolean; fn: boolean }): string | null => {
     const keyboardConfig = getKeyboardConfig(keyboardType);
@@ -1574,7 +1597,7 @@ function KeyboardSyncHandler() {
 
     // Handle special keys - check both key and code for Print Screen
     if (specialKeyMap[key]) {
-      return specialKeyMap[key];
+      return resolveConfigButtonId(keyboardConfig, specialKeyMap[key], key);
     }
     // Also check code for Print Screen (some browsers use different key names)
     if (code === 'PrintScreen' || code === 'Print') {
@@ -1777,7 +1800,7 @@ function KeyboardSyncHandler() {
 
     // Non-modifier keys that should NOT repeat when held
     const nonRepeatableKeys = new Set([
-      'CapsLock', 'NumLock', 'ScrollLock',
+      'CapsLock', 'NumLock', 'ScrollLock', 'Insert',
       'Shift', 'Control', 'Alt', 'Meta', 'Fn',
     ]);
 
@@ -1939,6 +1962,9 @@ function KeyboardSyncHandler() {
                 handleKeyPress(buttonConfig.primary, modifiers);
               }
             }
+          } else if (key.length > 1) {
+            // Mapped button id missing from config — still forward the browser key
+            handleKeyPress(key, modifiers);
           } else if (isPrintScreen) {
             // If Print Screen button config not found, still send the key
             handleKeyPress('PrintScreen', modifiers);

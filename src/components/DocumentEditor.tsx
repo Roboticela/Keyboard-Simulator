@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useKeyboardInput } from "@/contexts/KeyboardInputContext";
+import { useKeyboardLock } from "@/contexts/KeyboardLockContext";
 import { createDebugLogger } from "@/lib/debug";
 import {
   resolveDocumentShortcut,
@@ -113,10 +114,13 @@ const DocumentEditor = ({
   onToggleFullscreen
 }: DocumentEditorProps) => {
   const [text, setText] = useState('');
-  const [isOverwrite, setIsOverwrite] = useState(false);
+  const { insert, toggleInsert } = useKeyboardLock();
+  // insert lock ON = overwrite mode (matches keyboard LED / OVR convention)
+  const isOverwrite = insert;
   const [cursorPos, setCursorPos] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [caretPos, setCaretPos] = useState({ top: 0, left: 0, height: 20, width: 2 });
+  const [caretMode, setCaretMode] = useState<'insert' | 'overwrite' | 'selection'>('insert');
   const [caretVisible, setCaretVisible] = useState(true);
   const [selectionRange, setSelectionRange] = useState({ start: 0, end: 0 });
   const [selectionRects, setSelectionRects] = useState<EditorRect[]>([]);
@@ -165,6 +169,8 @@ const DocumentEditor = ({
     if (!textareaRef.current) return;
 
     const textarea = textareaRef.current;
+    const currentText = textRef.current;
+    const overwriteEnabled = isOverwriteRef.current;
     const selStart = textarea.selectionStart;
     const selEnd = textarea.selectionEnd;
     setSelectionRange((prev) =>
@@ -180,6 +186,7 @@ const DocumentEditor = ({
       const isVisible =
         textarea.clientHeight <= 0 ||
         (coords.top + coords.height > 0 && coords.top < textarea.clientHeight);
+      setCaretMode('selection');
       setCaretVisible(isVisible);
       setCaretPos({
         top: coords.top,
@@ -192,24 +199,23 @@ const DocumentEditor = ({
 
     setSelectionRects([]);
 
-    const pos = posOverride !== undefined ? posOverride : textarea.selectionStart;
+    const pos = posOverride !== undefined ? posOverride : intendedCursorPosRef.current;
     const coords = getCaretCoordinates(textarea, pos);
-    const atEnd = pos >= textarea.value.length;
-    const onNewline = pos < textarea.value.length && textarea.value[pos] === '\n';
-    const overwriteActive = isOverwrite && !atEnd && !onNewline;
+    const canOverwrite =
+      overwriteEnabled && pos < currentText.length && currentText[pos] !== '\n';
 
     let width = 2;
-    if (overwriteActive) {
+    if (canOverwrite) {
       width = Math.max(coords.width, 8);
     }
 
-    // Show caret unless clearly scrolled out of the visible textarea area
     const isVisible =
       textarea.clientHeight <= 0 ||
       (coords.top + coords.height > 0 && coords.top < textarea.clientHeight);
 
-    dbg('updateEditorVisuals', { pos, coords, width, isVisible, overwriteActive, hasSelection: false });
+    dbg('updateEditorVisuals', { pos, coords, width, isVisible, canOverwrite, hasSelection: false });
 
+    setCaretMode(canOverwrite ? 'overwrite' : 'insert');
     setCaretVisible(isVisible);
     setCaretPos({
       top: coords.top,
@@ -309,8 +315,8 @@ const DocumentEditor = ({
 
     if (e.key === 'Insert') {
       e.preventDefault();
-      dbg('handleKeyDown → Insert: toggling overwrite', { next: !isOverwrite });
-      setIsOverwrite(!isOverwrite);
+      dbg('handleKeyDown → Insert: toggling insert/overwrite', { next: !insert });
+      toggleInsert();
       setTimeout(() => updateEditorVisuals(), 0);
       return;
     }
@@ -326,25 +332,27 @@ const DocumentEditor = ({
       
       if (isOverwrite && start < text.length && text[start] !== '\n') {
         const newText = text.substring(0, start) + e.key + text.substring(start + 1);
-        dbg('handleKeyDown → printable (overwrite)', { key: e.key, start, nextPos: start + 1 });
-        intendedCursorPosRef.current = start + 1;
+        const newPos = start + 1;
+        dbg('handleKeyDown → printable (overwrite)', { key: e.key, start, nextPos: newPos });
+        intendedCursorPosRef.current = newPos;
+        textRef.current = newText;
         setText(newText);
+        setCursorPos(newPos);
         setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start + 1;
-          dbg('handleKeyDown → printable (overwrite) timer: setCursorPos', start + 1);
-          setCursorPos(start + 1);
-          scrollCaretIntoView();
+          textarea.selectionStart = textarea.selectionEnd = newPos;
+          scrollCaretIntoView(newPos);
         }, 0);
       } else {
         const newText = text.substring(0, start) + e.key + text.substring(start);
-        dbg('handleKeyDown → printable (insert)', { key: e.key, start, nextPos: start + 1 });
-        intendedCursorPosRef.current = start + 1;
+        const newPos = start + 1;
+        dbg('handleKeyDown → printable (insert)', { key: e.key, start, nextPos: newPos });
+        intendedCursorPosRef.current = newPos;
+        textRef.current = newText;
         setText(newText);
+        setCursorPos(newPos);
         setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start + 1;
-          dbg('handleKeyDown → printable (insert) timer: setCursorPos', start + 1);
-          setCursorPos(start + 1);
-          scrollCaretIntoView();
+          textarea.selectionStart = textarea.selectionEnd = newPos;
+          scrollCaretIntoView(newPos);
         }, 0);
       }
       return;
@@ -509,16 +517,17 @@ const DocumentEditor = ({
 
     const applyEditorSnapshot = (snap: EditorSnapshot) => {
       intendedCursorPosRef.current = snap.cursor;
+      textRef.current = snap.text;
       if (snap.selStart === snap.selEnd) {
         selectionAnchorRef.current = snap.cursor;
       }
       setSelectionRange({ start: snap.selStart, end: snap.selEnd });
       setText(snap.text);
+      setCursorPos(snap.cursor);
       setTimeout(() => {
         if (!textareaRef.current) return;
         textareaRef.current.selectionStart = snap.selStart;
         textareaRef.current.selectionEnd = snap.selEnd;
-        setCursorPos(snap.cursor);
         scrollCaretIntoView(snap.cursor);
       }, 0);
     };
@@ -618,10 +627,10 @@ const DocumentEditor = ({
       return;
     }
 
-    // Handle Insert key (toggle overwrite)
+    // Handle Insert key (toggle insert/overwrite via shared lock state)
     if (key === 'Insert') {
-      dbg('vkp → Insert: toggling overwrite', { next: !currentIsOverwrite });
-      setIsOverwrite(!currentIsOverwrite);
+      dbg('vkp → Insert: toggling insert/overwrite', { next: !insert });
+      toggleInsert();
       setTimeout(() => updateEditorVisuals(), 0);
       return;
     }
@@ -1047,15 +1056,13 @@ const DocumentEditor = ({
               width: `${caretPos.width}px`,
               height: `${caretPos.height}px`,
               display: caretVisible ? 'block' : 'none',
-              ...(hasSelection
+              ...(caretMode === 'selection'
                 ? {
                     backgroundColor: EDITOR_CARET_BG,
                     borderRadius: '1px',
                     animation: 'doc-editor-caret-blink 1s step-end infinite',
                   }
-                : isOverwrite &&
-                  cursorPos < text.length &&
-                  text[cursorPos] !== '\n'
+                : caretMode === 'overwrite'
                   ? {
                       backgroundColor: EDITOR_OVERWRITE_BG,
                       border: `2px solid ${EDITOR_OVERWRITE_BORDER}`,

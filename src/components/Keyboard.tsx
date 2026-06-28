@@ -596,6 +596,46 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
           console.log(`Button "${buttonName}" clicked (no keyboard config found for type: ${keyboardType})`);
         }
 
+        // Show F-key info toast for all keyboards (only when pressed alone, no modifiers)
+        {
+          const modifiers = getAllModifiers();
+          const noModifiers = !modifiers.shift && !modifiers.ctrl && !modifiers.alt && !modifiers.meta && !modifiers.fn;
+          if (noModifiers) {
+            const FKEY_INFO: Record<string, { title: string; description: string }> = {
+              'esc':         { title: 'Esc',          description: 'Cancel current action or close dialog' },
+              'tab':         { title: 'Tab',           description: 'Indent text in editors (often 2–4 spaces) or move focus to the next field in forms' },
+              'f1':          { title: 'F1',            description: 'Open Help in the active app' },
+              'f2':          { title: 'F2',            description: 'Rename the selected file or item' },
+              'f3':          { title: 'F3',            description: 'Open Find / Search in the active window' },
+              'f4':          { title: 'F4',            description: 'Show address bar list (Explorer) — Alt+F4 closes window' },
+              'f5':          { title: 'F5',            description: 'Refresh / Reload the current page or view' },
+              'f6':          { title: 'F6',            description: 'Move cursor to address bar (browser / Explorer)' },
+              'f7':          { title: 'F7',            description: 'Spell check in Word, Outlook and other Office apps' },
+              'f8':          { title: 'F8',            description: 'Enter Windows Recovery Environment (hold at startup)' },
+              'f9':          { title: 'F9',            description: 'Send & Receive in Outlook; recalculate in Excel' },
+              'f10':         { title: 'F10',           description: 'Activate the menu bar — Shift+F10 opens context menu' },
+              'f11':         { title: 'F11',           description: 'Toggle full-screen mode in browsers and File Explorer' },
+              'f12':         { title: 'F12',           description: 'Open Browser DevTools; Save As in Office apps' },
+              'prtsc':       { title: 'PrtSc',         description: 'Capture screenshot to clipboard — Win+PrtSc saves to Pictures/Screenshots' },
+              'capslock':    { title: 'Caps Lock',     description: 'Lock all letters to uppercase — press again to turn off' },
+              'numlock':     { title: 'Num Lock',      description: 'Toggle numpad between number input and navigation keys' },
+              'scroll-lock': { title: 'Scroll Lock',   description: 'Freeze row/column scrolling in spreadsheets — rarely used in modern apps' },
+              'pause-break': { title: 'Pause / Break', description: 'Pause a running process; Break sends an interrupt signal to the terminal' },
+              'menu':        { title: 'Menu',          description: 'Open the right-click context menu for the selected item (same as right-click)' },
+              'insert':      { title: 'Insert',        description: 'Toggle Insert vs Overwrite mode when typing in text editors' },
+              'home':        { title: 'Home',          description: 'Jump to the start of the line — Ctrl+Home goes to the top of the document' },
+              'end':         { title: 'End',           description: 'Jump to the end of the line — Ctrl+End goes to the bottom of the document' },
+              'pgup':        { title: 'Pg Up',         description: 'Scroll up one screen or move the cursor up one page' },
+              'pgdn':        { title: 'Pg Down',       description: 'Scroll down one screen or move the cursor down one page' },
+              'delete':      { title: 'Delete',        description: 'Remove the character after the cursor or delete the selected item' },
+            };
+            const info = FKEY_INFO[buttonName];
+            if (info) {
+              window.dispatchEvent(new CustomEvent('pc-fkey-info', { detail: info }));
+            }
+          }
+        }
+
         // Handle Fn key separately - it should be held like a modifier key
         // Only toggle fnHold if it's being toggled from StatusControls, not from keyboard
         if (buttonName === 'fn') {
@@ -2789,6 +2829,22 @@ export default function Keyboard() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isKeyboardLoading, setIsKeyboardLoading] = useState(true);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [fKeyToast, setFKeyToast] = useState<{ title: string; description: string } | null>(null);
+  const fKeyToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ title: string; description: string }>).detail;
+      setFKeyToast(detail);
+      if (fKeyToastTimerRef.current) clearTimeout(fKeyToastTimerRef.current);
+      fKeyToastTimerRef.current = setTimeout(() => setFKeyToast(null), 3000);
+    };
+    window.addEventListener('pc-fkey-info', handler);
+    return () => {
+      window.removeEventListener('pc-fkey-info', handler);
+      if (fKeyToastTimerRef.current) clearTimeout(fKeyToastTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     setIsKeyboardLoading(true);
@@ -2861,6 +2917,30 @@ export default function Keyboard() {
             keyboardType={keyboardType}
             isSwitching={hasLoadedOnce}
           />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {fKeyToast && (
+          <motion.div
+            key={fKeyToast.title}
+            initial={{ opacity: 0, y: 12, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-start gap-3 px-4 py-3 rounded-xl border border-border/60 bg-card/90 backdrop-blur-md shadow-xl w-max max-w-[min(24rem,calc(100%-2rem))] pointer-events-none"
+          >
+            <div className="flex items-center justify-center min-h-9 min-w-9 px-2.5 py-1.5 rounded-lg bg-primary/15 border border-primary/30 flex-shrink-0 self-start">
+              <span className="text-xs font-bold text-primary font-mono text-center leading-tight whitespace-nowrap">
+                {fKeyToast.title}
+              </span>
+            </div>
+            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+              <span className="text-xs font-semibold text-foreground leading-tight">
+                {fKeyToast.title === 'Esc' ? 'Escape Key' : `${fKeyToast.title} Key`}
+              </span>
+              <span className="text-xs text-muted-foreground leading-snug break-words">{fKeyToast.description}</span>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
       <Canvas

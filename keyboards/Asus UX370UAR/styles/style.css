@@ -1,0 +1,424 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+:root {
+    --bg-primary: rgb(94, 94, 94);
+    --bg-secondary: black;
+    --color-primary: white;
+    --color-secondary: white;
+    --shadow-color: black;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.keyboard {
+    font-size: 16px;
+    border: 2px solid var(--bg-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    padding: 1em;
+    border-radius: 1em;
+    background-color: var(--bg-primary);
+}
+
+.row {
+    display: flex;
+    gap: 0.5em;
+}
+
+.enter-key-row-outer {
+    display: flex;
+    gap: 0.5em;
+    /* for enter key */
+    position: relative;
+}
+
+.enter-key-row-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.arrow-keys {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.3em;
+}
+
+.up-down-keys {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1em;
+}
+
+button {
+    font-size: 1em;
+    width: 3.4em;
+    height: 3.4em;
+    border-radius: 0.36em;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--bg-secondary);
+    color: var(--color-primary);
+    box-shadow: 0px 0px 0.4em var(--shadow-color);
+}
+
+.svg {
+    width: 1em;
+    height: 1em;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.row-1 button {
+    width: 2.85em;
+    height: 1.7em;
+    justify-content: space-between;
+    padding: 0.1em;
+}
+
+.row-1 .key {
+    font-size: 0.7em;
+    align-self: flex-end;
+}
+
+.row-1 .fn-key {
+    align-self: flex-start;
+}
+
+.row-1 .svg {
+    width: 0.8em;
+    height: 0.8em;
+}
+
+.aeroplane-icon {
+    width: 1em;
+    height: 1em;
+}
+
+.aeroplane-icon svg {
+    transform: rotate(45deg);
+}
+
+.backlight-icon {
+    position: relative;
+    top: 0.2em;
+}
+
+.backlight-icon .sun-icon {
+    position: absolute;
+    top: -0.17em;
+    left: 50%;
+    transform: translate(-50%);
+    clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+}
+
+.cross-icon .svg {
+    width: 1em;
+    height: 1em;
+}
+
+.extend-screen-icon {
+    display: flex;
+    align-items: center;
+}
+
+.row-1 .computer-icon {
+    transform: rotate(180deg);
+    width: 0.7em;
+    height: 0.7em;
+}
+
+.row-1 .pause-break-key,
+.row-1 .prtsc-sysrq-key {
+    flex-direction: column;
+}
+
+.medium-key {
+    width: 2.85em;
+}
+
+.medium-key .key {
+    margin-top: 0.4em;
+}
+
+.backspace-key {
+    width: 6.3em;
+    padding: 0.1em;
+}
+
+.backspace-key .key {
+    font-size: 0.7em;
+    align-self: flex-end;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.backspace-key .svg {
+    align-self: flex-start;
+    width: 2em;
+    height: 2em;
+    position: relative;
+    bottom: 0.7em;
+}
+
+.tab-key {
+    width: 5em;
+}
+
+.tab-key .key {
+    font-size: 0.7em;
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.1em;
+}
+
+.tab-key .icon {
+    display: flex;
+    flex-direction: column;
+}
+
+.tab-key .svg {
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.capslock-key {
+    width: 6em;
+}
+
+.capslock-key .key {
+    font-size: 0.7em;
+    align-self: flex-start;
+    padding: 0.1em;
+}
+
+.enter-key-wrapper {
+    position: absolute;
+    right: 0.1em;
+    width: 4em;
+    height: 100%;
+    filter: drop-shadow(0px 0px 0.01em black);
+}
+
+.enter-key {
+    width: 100%;
+    height: 100%;
+    clip-path: polygon(-20% -20%, 120% -20%, 120% 120%, 20% 120%, 20% 46%, -20% 46%);
+    justify-content: flex-start;
+}
+
+.enter-key .key {
+    margin-top: 0.8em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.enter-key .text {
+    font-size: 0.7em;
+}
+
+.enter-key .svg {
+    width: 2em;
+    height: 2em;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    transform: translate(15%, 60%);
+}
+
+.shift-left-key {
+    width: 4.35em;
+}
+
+.shift-left-key .key {
+    font-size: 0.7em;
+    align-self: flex-start;
+    padding: 0.1em;
+    display: flex;
+    align-items: center;
+}
+
+.shift-right-key {
+    width: 8.7em;
+}
+
+.shift-right-key .key {
+    padding: 0.1em;
+    font-size: 0.7em;
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+}
+
+.ctrl-left-key {
+    width: 4.299em;
+}
+
+.ctrl-left-key .key {
+    font-size: 0.7em;
+    align-self: flex-start;
+    padding: 0.1em;
+}
+
+.alt-left-key .key,
+.alt-right-key .key {
+    font-size: 0.7em;
+}
+
+.space-key {
+    width: 19em;
+}
+
+.ctrl-right-key .key {
+    font-size: 0.7em;
+}
+
+.arrow-keys button {
+    width: 4.01em;
+    height: 1.7em;
+    justify-content: flex-start;
+}
+
+.arrow-keys .svg {
+    width: 0.6em;
+    height: 0.6em;
+}
+
+.arrow-keys .fn-key {
+    font-size: 0.5em;
+}
+
+.light-key {
+    position: relative;
+}
+
+.light-key .light {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: white;
+    position: absolute;
+    top: 50%;
+    right: 0.3em;
+    transform: translateY(-50%);
+}
+
+.row-1 .light {
+    top: auto;
+    bottom: 0.3em;
+    right: 0.3em;
+    width: 3px;
+    height: 3px;
+}
+
+.bump-key {
+    position: relative;
+}
+
+.bump-key .bump {
+    position: absolute;
+    bottom: 0.19em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1.1em;
+    height: 0.09em;
+    border-radius: 0.1em;
+    background-color: var(--bg-secondary);
+    box-shadow: 0px 0px 2px 1px rgb(61, 61, 61);
+}
+
+/* Utility classes */
+.no-shift {
+    position: relative;
+}
+
+.no-shift .fn-key {
+    position: absolute;
+    bottom: 0.1em;
+    right: 0.1em;
+}
+
+.row-1 .fn-key {
+    right: auto;
+    left: 0.1em;
+}
+
+.row-1 .cross-icon {
+    bottom: 0;
+}
+
+.ctrl-right-key .fn-key {
+    left: 0.1em;
+    right: auto;
+}
+
+.arrow-keys .fn-key {
+    right: 50%;
+    transform: translateX(50%);
+}
+
+.no-fn {
+    position: relative;
+}
+
+.no-fn .shift-key {
+    position: absolute;
+    top: 0.1em;
+    left: 0.1em;
+}
+
+.altgr-key {
+    position: absolute;
+    bottom: 0.1em;
+    right: 0.1em;
+}
+
+button.content-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.row-1 .content-center * {
+    align-self: center;
+}
+
+.border {
+    border: 0.1em solid var(--color-primary);
+    border-radius: 0.1em;
+}
+
+.row-1 .font-small {
+    font-size: 0.59em;
+}
+
+.font-medium {
+    font-size: 0.79em;
+}

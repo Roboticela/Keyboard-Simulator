@@ -108,7 +108,7 @@ export const pcConfig: KeyboardButtonConfig = [
   { id: 'arrow-right', primary: 'ArrowRight', secondary: '', fn: '' },
 
   // Numpad
-  { id: 'num-lock', primary: 'NumLock', secondary: '', fn: '' },
+  { id: 'numlock', primary: 'NumLock', secondary: '', fn: '' },
   { id: 'num-slash', primary: '/', secondary: '', fn: '' },
   { id: 'num-multiply', primary: '*', secondary: '', fn: '' },
   { id: 'num-minus', primary: '-', secondary: '', fn: '' },

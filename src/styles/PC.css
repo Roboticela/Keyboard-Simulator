@@ -132,6 +132,7 @@
     border-radius: 50%;
     background-color: var(--bg-primary);
     box-shadow: inset 0px 0px 5px var(--bg-secondary);
+    transition: background-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
 
 .PC-colors .keyboard .indicator-icon {

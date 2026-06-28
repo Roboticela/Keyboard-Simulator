@@ -9,6 +9,7 @@ const KEYBOARD_LABELS: Record<KeyboardType, string> = {
   'dell-latitude-e7270': 'Dell Latitude E7270',
   'hp-elitebook-820-g4': 'HP EliteBook 820 G4',
   'toshiba-portege-x30-e': 'Toshiba Portege X30 E',
+  'pc': 'PC (Full-size)',
 };
 
 const KEY_ROWS = [

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 146.01 55.22" color="black">
+    <circle cx="73.32" cy="26.88" r="18.68" fill="none" stroke="currentColor" stroke-width="4.67" stroke-linecap="round"
+        stroke-linejoin="round" />
+
+    <line x1="96.67" y1="50.24" x2="86.51" y2="40.08" stroke="currentColor" stroke-width="4.67" stroke-linecap="round"
+        stroke-linejoin="round" />
+
+    <line x1="73.32" y1="19.88" x2="73.32" y2="33.89" stroke="currentColor" stroke-width="4.67" stroke-linecap="round"
+        stroke-linejoin="round" />
+
+    <line x1="66.31" y1="26.88" x2="80.33" y2="26.88" stroke="currentColor" stroke-width="4.67" stroke-linecap="round"
+        stroke-linejoin="round" />
+
+    <rect x="2.16" y="2.16" width="141.69" height="50.9" rx="7.67" ry="7.67" fill="none" stroke="currentColor"
+        stroke-width="4.32" stroke-linecap="round" stroke-linejoin="round" />
+
+    <path
+        d="M33.04,10.46v34.31c0,2.38-2.87,3.57-4.55,1.89L11.33,29.5c-1.04-1.04-1.04-2.73,0-3.77L28.48,8.57c1.68-1.68,4.55-.49,4.55,1.89Z"
+        fill="currentColor" />
+
+    <path
+        d="M113.6,44.77V10.46c0-2.38,2.87-3.57,4.55-1.89l17.16,17.16c1.04,1.04,1.04,2.73,0,3.77l-17.16,17.16c-1.68,1.68-4.55.49-4.55-1.89Z"
+        fill="currentColor" />
+</svg>

@@ -79,30 +79,18 @@ export const PC = () => {
 
                     {/* Indicators row */}
                     <div className="row indicators">
-                        <span className="indicator indicator-first">
-                            <span className="indicator-light"></span>
-                            <span className="indicator-icon content-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                                    strokeLinejoin="round">
-                                    <path d="M12 2v10" />
-                                    <path d="M18.4 6.6a9 9 0 1 1-12.77.04" />
-                                </svg>
-                            </span>
+                        <span className="indicator">
+                            <span className="indicator-light" data-indicator="capslock"></span>
+                            <span className="indicator-icon content-center text-small">A</span>
                         </span>
 
                         <span className="indicator">
-                            <span className="indicator-light"></span>
+                            <span className="indicator-light" data-indicator="numlock"></span>
                             <span className="indicator-icon content-center text-small">1</span>
                         </span>
 
                         <span className="indicator">
-                            <span className="indicator-light"></span>
-                            <span className="indicator-icon content-center text-small">A</span>
-                        </span>
-
-                        <span className="indicator indicator-last">
-                            <span className="indicator-light"></span>
+                            <span className="indicator-light" data-indicator="scrolllock"></span>
                             <span className="indicator-icon content-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
@@ -470,7 +458,7 @@ export const PC = () => {
                     {/* Numpad */}
                     <div className="keyboard-numpad">
                         <div className="row">
-                            <button className="key content-center text-small" data-key-name="num-lock">
+                            <button className="key content-center text-small" data-key-name="numlock">
                                 <span className="key-primary multi-line">
                                     <span className="line">Num</span>
                                     <span className="line">Lock</span>

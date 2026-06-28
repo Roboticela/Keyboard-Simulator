@@ -1169,6 +1169,24 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
           }
         }
       }
+
+      // Update standalone indicator lights (e.g. PC keyboard's dedicated LEDs)
+      const applyIndicator = (el: HTMLElement | null, active: boolean) => {
+        if (!el) return;
+        if (active) {
+          el.style.backgroundColor = 'var(--primary)';
+          el.style.opacity = '1';
+          el.style.boxShadow = '0 0 4px var(--primary), 0 0 6px var(--primary)';
+        } else {
+          el.style.backgroundColor = '';
+          el.style.opacity = '';
+          el.style.boxShadow = '';
+        }
+      };
+
+      applyIndicator(keyboardElement.querySelector('[data-indicator="capslock"]') as HTMLElement | null, capsLock);
+      applyIndicator(keyboardElement.querySelector('[data-indicator="numlock"]') as HTMLElement | null, numLock);
+      applyIndicator(keyboardElement.querySelector('[data-indicator="scrolllock"]') as HTMLElement | null, scrollLock);
     };
 
     // Update immediately

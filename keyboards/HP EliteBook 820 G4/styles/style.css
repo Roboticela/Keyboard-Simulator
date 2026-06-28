@@ -1,0 +1,372 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+:root {
+    --bg-primary: #909193;
+    --bg-secondary: black;
+    --text-color: white;
+    --shadow-color: black;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.keyboard {
+    font-size: 16px;
+    width: 75.125em;
+    border: 0.125em solid var(--bg-secondary);
+    padding: 1em;
+    border-radius: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    background-color: var(--bg-primary);
+    /* for nub */
+    position: relative;
+}
+
+.nub {
+    width: 3em;
+    height: 3em;
+    border-radius: 50%;
+    background-color: var(--bg-secondary);
+    border: 0.4em solid var(--bg-primary);
+    position: absolute;
+    top: 58%;
+    left: 44.65%;
+}
+
+.row {
+    display: flex;
+    gap: 0.5em;
+}
+
+.enter-key-rows-outer {
+    display: flex;
+    gap: 0.5em;
+}
+
+.enter-key-rows-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.arrow-keys {
+    display: flex;
+    gap: 0.5em;
+}
+
+button {
+    font-size: 1.3em;
+    width: 3.5em;
+    height: 3.5em;
+    background-color: var(--bg-secondary);
+    color: var(--text-color);
+    border: none;
+    border-radius: 0.3em;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.2em;
+    box-shadow: 0px 0px 0.3em var(--shadow-color);
+}
+
+.primary-keys {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.5em 0.4em 0.2em;
+}
+
+.secondary-keys {
+    display: flex;
+}
+
+.fn-key {
+    font-size: 0.5em;
+    align-self: flex-start;
+    border: 0.05em solid var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 16px;
+    min-height: 16px;
+    aspect-ratio: 1/1;
+    padding: 0.2em;
+    border-radius: 0.4em;
+}
+
+.altgr-key {
+    padding: 1em;
+    padding: 0.5em 0.4em 0.2em;
+    align-self: flex-end;
+}
+
+.backspace-key .key,
+.tab-key .key,
+.capslock-key .key,
+.ctrl-left-key .key,
+.alt-left-key .key,
+.alt-right-key .key,
+.ctrl-right-key .key {
+    font-size: 0.7em;
+}
+
+.backspace-key {
+    width: 5.6em;
+    align-items: stretch;
+}
+
+.backspace-key .key {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5em;
+}
+
+.tab-key {
+    width: 5.5em;
+}
+
+.tab-key .primary-keys {
+    width: 100%;
+}
+
+.tab-key .key {
+    display: flex;
+    justify-content: space-between;
+}
+
+.tab-key .icon-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.capslock-key {
+    width: 6.56em;
+    /* for light */
+    position: relative;
+}
+
+.capslock-key .light {
+    top: 32%;
+}
+
+.enter-key {
+    position: relative;
+    right: 1em;
+    height: 100%;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 30% 100%, 30% 47%, 0 47%);
+}
+
+.bump-key .key-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.shift-left-key,
+.ctrl-left-key {
+    width: 4.5em;
+}
+
+.shift-right-key {
+    width: 8.5em;
+}
+
+.fn-source-key .secondary-keys {
+    padding: 0.5em 0.4em;
+}
+
+.space-key {
+    width: 19.1em;
+}
+
+.arrow-keys button {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.arrow-keys .fn-key {
+    position: absolute;
+    top: 0.2em;
+    left: 50%;
+    transform: translate(-50%);
+}
+
+.up-down-keys {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1em;
+}
+
+.up-down-keys button {
+    height: 1.75em;
+    width: 4.6em;
+    padding: 0;
+    align-items: flex-end;
+}
+
+.up-down-keys .primary-keys {
+    padding: 0;
+}
+
+.light-key {
+    position: relative;
+}
+
+.light {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--bg-primary);
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+
+}
+
+.svg {
+    width: 2em;
+    aspect-ratio: 1/1;
+    /* background-color: red; */
+}
+
+.svg svg {
+    width: 100%;
+}
+
+.custom-icon-outer {
+    width: 3.5em;
+}
+
+.backspace-key .icon-outer {
+    width: 1.5em;
+}
+
+.tab-key .icon-outer {
+    width: 1.3em;
+}
+
+.enter-key .icon-outer {
+    width: 1.8em;
+}
+
+.shift-left-key .icon-outer,
+.shift-right-key .icon-outer {
+    width: 1.1em;
+}
+
+.windows-key .icon-outer {
+    width: 1.3em;
+}
+
+.arrow-keys .icon-outer {
+    width: 0.8em;
+}
+
+.esc-key {
+    border-top-left-radius: 1.2em;
+}
+
+.delete-key {
+    border-top-right-radius: 1.2em;
+}
+
+.ctrl-left-key {
+    border-bottom-left-radius: 1em;
+}
+
+.arrow-right-key {
+    border-bottom-right-radius: 1em;
+}
+
+.row-1 {
+    justify-content: space-between;
+}
+
+.row-1 button {
+    width: 3.2em;
+    height: 2em;
+    justify-content: flex-start;
+    gap: 0.3em;
+}
+
+.row-1 .primary-keys {
+    padding: 0;
+}
+
+.row-1 .key {
+    font-size: 0.7em;
+}
+
+.num-sub {
+    font-size: 0.8em;
+    position: relative;
+    top: 0.3em;
+}
+
+.f-12-key .fn-key,
+.insert-key .fn-key,
+.shift-right-key .fn-key,
+.arrow-keys .fn-key {
+    padding: 0;
+    aspect-ratio: 0;
+    white-space: nowrap;
+    align-self: center;
+}
+
+.row-1 .f-12-key {
+    gap: 0;
+}
+
+button.insert-key {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+}
+
+.shift-right-key .fn-key {
+    align-self: flex-start;
+}
+
+/* Utility Classes */
+button.place-center {
+    justify-content: center;
+    align-items: center;
+}
+
+.border-none {
+    border: none;
+}
+
+.icon-center {
+    position: relative;
+}
+
+.icon-center .fn-key {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.custom-icon {
+    width: 3em;
+}
+
+.align-symbol {
+    padding: 0.3em 0.4em 0.2em;
+}

@@ -1,0 +1,353 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+:root {
+    --bg-primary: #3B3A38;
+    --shadow-color: #1D1C18;
+    --text-color-primary: #CAC9CD;
+    --text-color-secondary: #848484;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.keyboard {
+    font-size: 16px;
+    border: 2px solid black;
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+    background-color: var(--bg-primary);
+    border-radius: 0.7em;
+    position: relative;
+}
+
+.keyboard-decor {
+    position: absolute;
+    bottom: -0.4em;
+    left: -0.4em;
+    width: 54.9em;
+    height: 2.4em;
+    background-color: white;
+    border-top-right-radius: 1em;
+}
+
+.row {
+    display: flex;
+    gap: 0.7em;
+}
+
+.enter-key-row-outer {
+    display: flex;
+}
+
+.enter-key-row-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+}
+
+button {
+    font-size: 1.5em;
+    width: 2.8em;
+    height: 2.8em;
+    border-radius: 0.3em;
+    background-color: var(--bg-primary);
+    color: var(--text-color-primary);
+    border: none;
+    box-shadow: 0px 0px 0.3em var(--shadow-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0.2em;
+}
+
+.function-key {
+    position: relative;
+}
+
+.function-key .fn-key {
+    position: absolute;
+    bottom: 0.2em;
+    right: 0.2em;
+}
+
+.fn-key {
+    color: var(--text-color-secondary);
+    font-size: 0.6em;
+}
+
+.svg {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+}
+
+.row-1 {
+    justify-content: space-between;
+}
+
+.row-1 button {
+    height: 1.8em;
+    width: 2.7em;
+    justify-content: space-between;
+}
+
+.row-1 .key {
+    font-size: 0.7em;
+}
+
+.lock-icon {
+    position: relative;
+}
+
+.lock-icon .lock-text {
+    font-size: 0.4em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--bg-primary);
+    font-weight: bold;
+}
+
+.bump-key {
+    position: relative;
+}
+
+.bump {
+    position: absolute;
+    bottom: 0.2em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1em;
+    height: 0.01em;
+    background-color: #64635F;
+    border-radius: 0.1em;
+}
+
+.light-key {
+    position: relative;
+}
+
+.light {
+    position: absolute;
+    top: 0.4em;
+    right: 0.2em;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: grey;
+}
+
+.mic-icon {
+    position: relative;
+}
+
+.cross-icon {
+    position: absolute;
+    left: 0.74em;
+    width: 0.7em;
+}
+
+.keyboard-icon {
+    width: 1.3em;
+}
+
+.extend-screen-icon {
+    position: relative;
+    top: 0.3em;
+}
+
+.laptop-icon {
+    background-color: var(--bg-primary);
+    position: absolute;
+    z-index: 1;
+}
+
+.screen-icon {
+    background-color: var(--bg-primary);
+    position: absolute;
+    top: -0.4em;
+    left: 0.4em;
+}
+
+.medium-size-key {
+    width: 2.7em;
+}
+
+.altgr-key {
+    position: relative;
+}
+
+.altgr {
+    position: absolute;
+    bottom: 0.2em;
+    right: 0.2em;
+}
+
+.backspace-key {
+    width: 4.7em;
+    padding-right: 0.6em;
+}
+
+.tab-key {
+    align-items: start;
+    width: 4.14em;
+    padding-left: 0.6em;
+}
+
+.tab-key .key {
+    display: flex;
+    flex-direction: column;
+}
+
+.capslock-key {
+    align-items: flex-start;
+    width: 4.64em;
+    padding-left: 0.6em;
+}
+
+.capslock-key .key {
+    font-size: 0.7em;
+}
+
+.enter-key-container {
+    position: relative;
+    filter: drop-shadow(0px 0px 5px #1D1C18);
+}
+
+.enter-key {
+    justify-content: flex-start;
+    width: 3em;
+    height: 100%;
+    clip-path: polygon(-20% -20%, 120% -20%, 120% 120%, 25% 120%, 25% 47%, -20% 47%);
+    box-shadow: none;
+}
+
+.enter-key-decor {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 53%;
+    width: 1.1em;
+    background-color: var(--bg-primary);
+    box-shadow: inset -5px 5px 5px -5px var(--shadow-color);
+    clip-path: polygon(-30% 0%, 100% 0%, 100% 130%, 16% 130%, 16% 18%, -30% 4%);
+}
+
+.enter-key .key {
+    margin-top: 0.9em;
+}
+
+.shift-left-key {
+    width: 3.5em;
+    align-items: flex-start;
+}
+
+.decor-container {
+    position: relative;
+}
+
+.btn-above {
+    position: relative;
+    z-index: 1;
+}
+
+.decor {
+    position: absolute;
+    top: 0;
+    right: -0.25em;
+    height: 100%;
+    width: 1em;
+    background-color: var(--bg-primary);
+    box-shadow: 0px 0px 0.3em var(--shadow-color);
+    border-radius: 0.2em;
+}
+
+.decor-left {
+    left: -0.25em;
+}
+
+.shift-right-key {
+    width: 6.94em;
+    align-items: flex-end;
+    padding-right: 0.6em;
+}
+
+.ctrl-left-key {
+    align-items: flex-start;
+    padding-left: 0.6em;
+    width: 3.5em;
+}
+
+.ctrl-left-key .key,
+.ctrl-right-key .key {
+    font-size: 0.7em;
+}
+
+.alt-left-key .key,
+.alt-right-key .key {
+    font-size: 0.7em;
+}
+
+.space-key {
+    width: 15.85em;
+}
+
+.arrow-keys {
+    display: flex;
+    gap: 0.7em;
+}
+
+.set {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+}
+
+.set button {
+    height: 1.8em;
+    /* width: 2.7em; */
+    padding: 0.3em;
+}
+
+.set .key {
+    font-size: 0.7em;
+}
+
+.up-dn-keys button {
+    width: 3.5em;
+}
+
+/* Utlitiy Classes */
+.align-start {
+    align-self: flex-start;
+}
+
+.align-end {
+    align-self: flex-end;
+}
+
+button.content-end {
+    justify-content: flex-end;
+}
+
+button.content-between {
+    justify-content: space-between;
+}

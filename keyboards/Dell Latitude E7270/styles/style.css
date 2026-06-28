@@ -1,0 +1,357 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+:root {
+    --bg-primary: #353535;
+    --bg-secondary: #353535;
+    --shadow-color: black;
+    --color-primary: white;
+    --color-secondary: #508593;
+    --bg-light: #616161;
+    --bg-bump: #4b4b4b;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.keyboard {
+    font-size: 16px;
+    border: 2px solid black;
+    padding: 1em;
+    border-radius: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+    background-color: var(--bg-primary);
+}
+
+.row {
+    display: flex;
+    gap: 0.7em;
+}
+
+button {
+    font-size: 1.3em;
+    width: 3em;
+    height: 3em;
+    border-radius: 0.3em;
+    border: none;
+    box-shadow: 0px 0px 0.35em var(--shadow-color);
+    padding: 0.4em;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: space-between;
+    background-color: var(--bg-secondary);
+    color: var(--color-primary);
+}
+
+.fn-key {
+    color: var(--color-secondary);
+    font-size: 0.7em;
+    align-self: flex-end;
+}
+
+.function-source-key {
+    color: var(--color-secondary);
+}
+
+.svg {
+    display: inline-block;
+    width: 1.3em;
+    height: 1.3em;
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+}
+
+.light-key {
+    position: relative;
+}
+
+.light-key .light {
+    position: absolute;
+    top: 0.3em;
+    right: 0.3em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--bg-light);
+}
+
+.bump-key {
+    position: relative;
+}
+
+.bump-key .bump {
+    position: absolute;
+    bottom: 0.3em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0.7em;
+    height: 0.1em;
+    border-radius: 1em;
+    background-color: var(--bg-bump);
+    border-bottom: 0.01em solid var(--shadow-color);
+    border-right: 0.01em solid var(--shadow-color);
+}
+
+.row-1 button {
+    width: 2.62em;
+    height: 2em;
+    padding: 0.2em;
+}
+
+.row-1 .esc-key,
+.row-1 .delete-key {
+    width: 3em;
+}
+
+.row-1 .key {
+    font-size: 0.7em;
+}
+
+.arrow-keys {
+    display: flex;
+    gap: 0.7em;
+}
+
+.set {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+}
+
+.page-down-key {
+    align-self: flex-end;
+}
+
+.arrow-keys .key {
+    font-size: 0.6em;
+}
+
+.arrow-keys button {
+    height: 2em;
+    padding: 0.2em;
+}
+
+.up-key,
+.down-key,
+.left-key,
+.right-key {
+    width: 3.28em;
+}
+
+.delete-key {
+    align-items: center;
+}
+
+.backspace-key {
+    width: 4.8em;
+    justify-content: flex-start;
+}
+
+.backspace-key .key {
+    align-self: stretch;
+    font-size: 0.7em;
+    display: flex;
+    flex-direction: column;
+}
+
+.backspace-key .text {
+    align-self: flex-end;
+}
+
+.backspace-key .icon {
+    align-self: flex-start;
+}
+
+.tab-key {
+    width: 4.8em;
+}
+
+.tab-key .key {
+    font-size: 0.7em;
+    display: flex;
+    flex-direction: column;
+}
+
+.tab-key .text {
+    align-self: flex-start;
+}
+
+.tab-key .icon {
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+}
+
+.capslock-key {
+    width: 5.55em;
+}
+
+.capslock-key .key {
+    font-size: 0.7em;
+}
+
+.enter-key {
+    width: 5.8em;
+    position: relative;
+}
+
+.enter-key .key {
+    font-size: 0.7em;
+    align-self: flex-end;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.enter-key .text {
+    position: relative;
+    z-index: 1;
+    background-color: var(--bg-secondary);
+}
+
+.enter-key .icon {
+    width: 3em;
+    height: 3em;
+    position: absolute;
+    right: 0.4em;
+    top: 0.5em;
+}
+
+.shift-left-key {
+    width: 7.5em;
+}
+
+.shift-left-key .key {
+    font-size: 0.7em;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.shift-right-key {
+    width: 7.35em;
+}
+
+.shift-right-key .key {
+    font-size: 0.7em;
+    align-self: flex-end;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.ctrl-left-key {
+    width: 3.92em;
+}
+
+.ctrl-left-key .key,
+.ctrl-right-key .key,
+.alt-left-key .key,
+.alt-right-key .key,
+.function-source-key .key {
+    font-size: 0.7em;
+}
+
+.space-key {
+    width: 17.21em;
+}
+
+.left-key,
+.right-key {
+    flex-direction: row;
+}
+
+.left-key .fn-key,
+.right-key .fn-key {
+    align-self: center;
+}
+
+.up-key .key {
+    transform: rotate(90deg);
+}
+
+.down-key .key {
+    transform: rotate(-90deg);
+}
+
+.right-key .key {
+    transform: rotate(180deg);
+}
+
+.lock-icon {
+    position: relative;
+}
+
+.lock-icon .lock-text {
+    position: absolute;
+    top: 59%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--bg-secondary);
+    font-size: 0.6em;
+}
+
+.lock-text.svg {
+    width: 0.8em;
+}
+
+.mic-icon {
+    position: relative;
+    right: 0.2em;
+}
+
+.mic-icon .cross {
+    position: absolute;
+    top: 0;
+    right: -0.35em;
+    width: 0.8em;
+}
+
+.extend-screen-icon {
+    position: relative;
+    right: 0.4em;
+}
+
+.extend-screen-icon .laptop-icon {
+    /* for using z-index */
+    position: relative;
+    z-index: 1;
+    background-color: var(--bg-secondary);
+}
+
+.extend-screen-icon .monitor-icon {
+    position: absolute;
+    top: -0.5em;
+    right: -0.5em;
+}
+
+/* Utility Classes */
+.fn-center {
+    position: relative;
+}
+
+.fn-center .fn-key {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.content-center {
+    justify-content: center;
+    align-items: center;
+}

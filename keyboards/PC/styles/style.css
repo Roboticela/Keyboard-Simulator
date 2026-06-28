@@ -1,0 +1,292 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+:root {
+    --bg-primary: rgb(59, 59, 59);
+    --bg-secondary: black;
+    --text-color: white;
+    --key-gap: 7px;
+    --row-gap: 7px;
+    --section-gap: 20px;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Basic styling */
+.windows-keyboard-layout-1 {
+    display: flex;
+    flex-direction: column;
+    gap: var(--section-gap);
+    width: 1530px;
+    padding: 20px;
+    border: 2px solid var(--bg-secondary);
+    border-radius: 10px;
+    background-color: var(--bg-primary);
+    color: var(--text-color);
+}
+
+.windows-keyboard-layout-1 svg {
+    width: 20px;
+    height: 20px;
+}
+
+.windows-keyboard-layout-1 .keyboard-top {
+    display: flex;
+    align-items: center;
+    gap: 88px;
+}
+
+.windows-keyboard-layout-1 .function-key-row .key:nth-child(1),
+.windows-keyboard-layout-1 .function-key-row .key:nth-child(5),
+.windows-keyboard-layout-1 .function-key-row .key:nth-child(9) {
+    margin-right: var(--section-gap);
+}
+
+.windows-keyboard-layout-1 .keyboard-bottom {
+    display: flex;
+    gap: var(--section-gap);
+}
+
+.windows-keyboard-layout-1 .keyboard-main,
+.windows-keyboard-layout-1 .keyboard-nav,
+.windows-keyboard-layout-1 .keyboard-numpad {
+    display: flex;
+    flex-direction: column;
+    gap: var(--row-gap);
+}
+
+.windows-keyboard-layout-1 .keyboard-nav {
+    justify-content: space-between;
+    align-items: center;
+}
+
+.windows-keyboard-layout-1 .arrow-keys {
+    align-items: center;
+}
+
+.windows-keyboard-layout-1 .row {
+    display: flex;
+    gap: var(--key-gap);
+}
+
+.windows-keyboard-layout-1 .rows-key-group {
+    display: flex;
+    gap: var(--key-gap);
+    /* For enter key */
+    position: relative;
+}
+
+.windows-keyboard-layout-1 .rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--row-gap);
+}
+
+.windows-keyboard-layout-1 .key {
+    font-size: 18px;
+    background-color: var(--bg-secondary);
+    color: var(--text-color);
+    border: none;
+    border-radius: 8px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 12px;
+}
+
+.windows-keyboard-layout-1 .indicators {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.windows-keyboard-layout-1 .indicator {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.windows-keyboard-layout-1 .indicator-light {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--bg-primary);
+    box-shadow: inset 0px 0px 5px var(--bg-secondary);
+}
+
+.windows-keyboard-layout-1 .indicator-icon {
+    color: var(--text-color);
+    width: 20px;
+    height: 20px;
+}
+
+/* Modifier Styling */
+.windows-keyboard-layout-1 .multi-line {
+    display: flex;
+    flex-direction: column;
+}
+
+.windows-keyboard-layout-1 .key-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.windows-keyboard-layout-1 .arrow-up-icon {
+    transform: rotate(90deg);
+}
+
+.windows-keyboard-layout-1 .arrow-down-icon {
+    transform: rotate(-90deg);
+}
+
+.windows-keyboard-layout-1 .arrow-right-icon {
+    transform: rotate(180deg);
+}
+
+.windows-keyboard-layout-1 .key-backspace {
+    width: 120px;
+}
+
+.windows-keyboard-layout-1 .key-tab {
+    width: 90px;
+}
+
+.windows-keyboard-layout-1 .key-capslock {
+    width: 110px;
+}
+
+.windows-keyboard-layout-1 .key-enter {
+    width: 90px;
+    clip-path: polygon(-20% -20%, 120% -20%, 120% 120%, 22% 120%, 22% 47%, -20% 47%);
+    position: absolute;
+    right: 0;
+    padding-top: 20px;
+}
+
+.windows-keyboard-layout-1 .shift-left {
+    width: 150px;
+}
+
+.windows-keyboard-layout-1 .shift-right {
+    width: 164px;
+}
+
+.windows-keyboard-layout-1 .key-space {
+    width: 368px;
+}
+
+/* Overriding properties */
+.windows-keyboard-layout-1 .indicators {
+    margin-left: -23px;
+}
+
+.windows-keyboard-layout-1 .indicator-icon svg {
+    width: 12px;
+    height: 12px;
+}
+
+.windows-keyboard-layout-1 .row-key .key {
+    height: 100%;
+}
+
+.windows-keyboard-layout-1 .key-tab .key-icon {
+    flex-direction: column;
+}
+
+.windows-keyboard-layout-1 .key-tab,
+.windows-keyboard-layout-1 .key-enter,
+.windows-keyboard-layout-1 .key-shift {
+    flex-direction: row;
+    gap: 5px;
+}
+
+.windows-keyboard-layout-1 .key-backspace .key-icon {
+    margin-right: 20px;
+}
+
+.windows-keyboard-layout-1 .key-bump .bump {
+    width: 15px;
+    height: 2px;
+    border-radius: 5px;
+    background-color: var(--bg-secondary);
+    box-shadow: inset 0px 0.5px 0px grey,
+        0px 0px 5px grey;
+}
+
+/* Utilities */
+.windows-keyboard-layout-1 .key-medium {
+    width: 82px;
+}
+
+.windows-keyboard-layout-1 .key-large {
+    width: 127px;
+}
+
+.windows-keyboard-layout-1 .text-small {
+    font-size: 12px;
+}
+
+.windows-keyboard-layout-1 .text-medium {
+    font-size: 15px;
+}
+
+.windows-keyboard-layout-1 .content-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.windows-keyboard-layout-1 .align-center {
+    display: flex;
+    align-items: center;
+}
+
+.windows-keyboard-layout-1 .align-start {
+    display: flex;
+    align-items: flex-start;
+}
+
+.windows-keyboard-layout-1 .justify-start {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.windows-keyboard-layout-1 .justify-center {
+    display: flex;
+    justify-content: center;
+}
+
+.windows-keyboard-layout-1 .justify-between {
+    display: flex;
+    justify-content: space-between;
+}
+
+.windows-keyboard-layout-1 .space-top {
+    padding-top: 20px;
+}
+
+.windows-keyboard-layout-1 .space-left {
+    padding-left: 20px;
+}
+
+.windows-keyboard-layout-1 .self-center {
+    align-self: center;
+}
+
+.windows-keyboard-layout-1 .self-start {
+    align-self: flex-start;
+}

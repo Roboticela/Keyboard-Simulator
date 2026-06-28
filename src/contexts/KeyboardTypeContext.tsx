@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
-export type KeyboardType = "asus-ux370uar" | "dell-latitude-5300-2-in-1" | "dell-latitude-e7270" | "hp-elitebook-820-g4" | "toshiba-portege-x30-e";
+export type KeyboardType = "asus-ux370uar" | "dell-latitude-5300-2-in-1" | "dell-latitude-e7270" | "hp-elitebook-820-g4" | "toshiba-portege-x30-e" | "pc";
 
 interface KeyboardTypeContextType {
   keyboardType: KeyboardType;
@@ -16,7 +16,7 @@ export function KeyboardTypeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const savedKeyboardType = localStorage.getItem("keyboardType") as KeyboardType;
-    if (savedKeyboardType && (savedKeyboardType === "asus-ux370uar" || savedKeyboardType === "dell-latitude-5300-2-in-1" || savedKeyboardType === "dell-latitude-e7270" || savedKeyboardType === "hp-elitebook-820-g4" || savedKeyboardType === "toshiba-portege-x30-e")) {
+    if (savedKeyboardType && (savedKeyboardType === "asus-ux370uar" || savedKeyboardType === "dell-latitude-5300-2-in-1" || savedKeyboardType === "dell-latitude-e7270" || savedKeyboardType === "hp-elitebook-820-g4" || savedKeyboardType === "toshiba-portege-x30-e" || savedKeyboardType === "pc")) {
       setKeyboardTypeState(savedKeyboardType);
     }
   }, []);

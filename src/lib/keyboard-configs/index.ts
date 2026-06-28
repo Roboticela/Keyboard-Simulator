@@ -11,6 +11,7 @@ export { asusUX370UARConfig } from './asus-ux370uar';
 export { dellLatitude53002In1Config } from './dell-latitude-5300-2-in-1';
 export { dellLatitudeE7270Config } from './dell-latitude-e7270';
 export { hpEliteBook820G4Config } from './hp-elitebook-820-g4';
+export { pcConfig } from './pc';
 
 import type { KeyboardButtonConfig } from '../keyboard-button-types';
 import { toshibaPortegeX30EConfig } from './toshiba-portege-x30-e';
@@ -18,6 +19,7 @@ import { asusUX370UARConfig } from './asus-ux370uar';
 import { dellLatitude53002In1Config } from './dell-latitude-5300-2-in-1';
 import { dellLatitudeE7270Config } from './dell-latitude-e7270';
 import { hpEliteBook820G4Config } from './hp-elitebook-820-g4';
+import { pcConfig } from './pc';
 
 /**
  * Map of keyboard types to their button configurations
@@ -28,6 +30,7 @@ export const keyboardConfigs: Record<string, KeyboardButtonConfig> = {
   'dell-latitude-5300-2-in-1': dellLatitude53002In1Config,
   'dell-latitude-e7270': dellLatitudeE7270Config,
   'hp-elitebook-820-g4': hpEliteBook820G4Config,
+  'pc': pcConfig,
 };
 
 /**

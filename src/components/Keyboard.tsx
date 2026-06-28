@@ -15,6 +15,7 @@ import { DellLatitude53002In1 } from './Dell-Latitude-5300-2-in-1';
 import { DellLatitudeE7270 } from './Dell-Latitude-E7270';
 import { HPEliteBook820G4 } from './HP-EliteBook-820-G4';
 import { ToshibaPortegeX30E } from './Toshiba-Portege-X30-E';
+import { PC } from './PC';
 import { useHand } from '@/contexts/HandContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useFullscreen } from '@/contexts/FullscreenContext';
@@ -2088,6 +2089,22 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
           '2xl': { scale: 0.015, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 5, objectZ: 0 },
         },
       },
+      'pc': {
+        fullscreen: {
+          sm: { scale: 0.005, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 2.9, objectZ: 0 },
+          md: { scale: 0.007, cameraX: 0, cameraZ: 17, cameraY: 4.5, objectX: 0, objectY: 4, objectZ: 0 },
+          lg: { scale: 0.009, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
+          xl: { scale: 0.011, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
+          '2xl': { scale: 0.013, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
+        },
+        normal: {
+          sm: { scale: 0.016, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 2.9, objectZ: 0 },
+          md: { scale: 0.016, cameraX: 0, cameraZ: 17, cameraY: 4.5, objectX: 0, objectY: 4, objectZ: 0 },
+          lg: { scale: 0.022, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
+          xl: { scale: 0.011, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
+          '2xl': { scale: 0.013, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
+        },
+      },
     };
 
     // Get settings for current keyboard type, fallback to asus-ux370uar if not found
@@ -2166,6 +2183,8 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
           root.render(<HPEliteBook820G4 />);
         } else if (keyboardType === 'toshiba-portege-x30-e') {
           root.render(<ToshibaPortegeX30E />);
+        } else if (keyboardType === 'pc') {
+          root.render(<PC />);
         } else {
           root.render(<AsusUX370UAR />);
         }

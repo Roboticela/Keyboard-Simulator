@@ -71,6 +71,7 @@ const keyboards = [
   { value: "dell-latitude-e7270", label: "Dell Latitude E7270", keyboardType: "dell-latitude-e7270" as const },
   { value: "hp-elitebook-820-g4", label: "HP EliteBook 820 G4", keyboardType: "hp-elitebook-820-g4" as const },
   { value: "toshiba-portege-x30-e", label: "Toshiba Portege X30 E", keyboardType: "toshiba-portege-x30-e" as const },
+  { value: "pc", label: "PC (Full-size)", keyboardType: "pc" as const },
 ];
 
 // Helper function to open links in both web and Tauri environments

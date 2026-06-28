@@ -27,6 +27,114 @@ import { useKeyboardInput } from '@/contexts/KeyboardInputContext';
 import { useFnFunction } from '@/contexts/FnFunctionContext';
 import { useSystemState } from '@/contexts/SystemStateContext';
 import { getKeyboardConfig } from '@/lib/keyboard-configs';
+import type { KeyboardButton } from '@/lib/keyboard-button-types';
+
+const NUMPAD_ALWAYS_PRIMARY_IDS = new Set([
+  'numlock',
+  'num-slash',
+  'num-multiply',
+  'num-minus',
+  'num-plus',
+  'num-enter',
+]);
+
+const NUMPAD_CODE_TO_BUTTON_ID: Record<string, string> = {
+  Numpad0: 'num0',
+  Numpad1: 'num1',
+  Numpad2: 'num2',
+  Numpad3: 'num3',
+  Numpad4: 'num4',
+  Numpad5: 'num5',
+  Numpad6: 'num6',
+  Numpad7: 'num7',
+  Numpad8: 'num8',
+  Numpad9: 'num9',
+  NumpadDecimal: 'num-period',
+  NumpadAdd: 'num-plus',
+  NumpadSubtract: 'num-minus',
+  NumpadMultiply: 'num-multiply',
+  NumpadDivide: 'num-slash',
+  NumpadEnter: 'num-enter',
+};
+
+/** When Num Lock is off, numpad digit keys act as navigation keys (Home, arrows, etc.). */
+function resolveKeyFromConfig(
+  buttonConfig: Pick<KeyboardButton, 'id' | 'primary' | 'secondary'>,
+  numLock: boolean,
+): { primary: string; secondary: string } {
+  const primary = buttonConfig.primary;
+  const secondary = buttonConfig.secondary || '';
+
+  if (
+    buttonConfig.id.startsWith('num') &&
+    !NUMPAD_ALWAYS_PRIMARY_IDS.has(buttonConfig.id) &&
+    !numLock &&
+    secondary
+  ) {
+    return { primary: secondary, secondary: '' };
+  }
+
+  return { primary, secondary };
+}
+
+const SPECIAL_KEY_TOAST_INFO: Record<string, { title: string; description: string }> = {
+  'esc':         { title: 'Esc',          description: 'Cancel current action or close dialog' },
+  'tab':         { title: 'Tab',           description: 'Indent text in editors (often 2–4 spaces) or move focus to the next field in forms' },
+  'f1':          { title: 'F1',            description: 'Open Help in the active app' },
+  'f2':          { title: 'F2',            description: 'Rename the selected file or item' },
+  'f3':          { title: 'F3',            description: 'Open Find / Search in the active window' },
+  'f4':          { title: 'F4',            description: 'Show address bar list (Explorer) — Alt+F4 closes window' },
+  'f5':          { title: 'F5',            description: 'Refresh / Reload the current page or view' },
+  'f6':          { title: 'F6',            description: 'Move cursor to address bar (browser / Explorer)' },
+  'f7':          { title: 'F7',            description: 'Spell check in Word, Outlook and other Office apps' },
+  'f8':          { title: 'F8',            description: 'Enter Windows Recovery Environment (hold at startup)' },
+  'f9':          { title: 'F9',            description: 'Send & Receive in Outlook; recalculate in Excel' },
+  'f10':         { title: 'F10',           description: 'Activate the menu bar — Shift+F10 opens context menu' },
+  'f11':         { title: 'F11',           description: 'Toggle full-screen mode in browsers and File Explorer' },
+  'f12':         { title: 'F12',           description: 'Open Browser DevTools; Save As in Office apps' },
+  'prtsc':       { title: 'PrtSc',         description: 'Capture screenshot to clipboard — Win+PrtSc saves to Pictures/Screenshots' },
+  'capslock':    { title: 'Caps Lock',     description: 'Lock all letters to uppercase — press again to turn off' },
+  'numlock':     { title: 'Num Lock',      description: 'Toggle numpad between number input and navigation keys' },
+  'scroll-lock': { title: 'Scroll Lock',   description: 'Freeze row/column scrolling in spreadsheets — rarely used in modern apps' },
+  'pause-break': { title: 'Pause / Break', description: 'Pause a running process; Break sends an interrupt signal to the terminal' },
+  'menu':        { title: 'Menu',          description: 'Open the right-click context menu for the selected item (same as right-click)' },
+  'insert':      { title: 'Insert',        description: 'Toggle Insert vs Overwrite mode when typing in text editors' },
+  'home':        { title: 'Home',          description: 'Jump to the start of the line — Ctrl+Home goes to the top of the document' },
+  'end':         { title: 'End',           description: 'Jump to the end of the line — Ctrl+End goes to the bottom of the document' },
+  'pgup':        { title: 'Pg Up',         description: 'Scroll up one screen or move the cursor up one page' },
+  'pgdn':        { title: 'Pg Down',       description: 'Scroll down one screen or move the cursor down one page' },
+  'delete':      { title: 'Delete',        description: 'Remove the character after the cursor or delete the selected item' },
+  'arrow-up':    { title: '↑',             description: 'Move the cursor or selection up one line' },
+  'arrow-down':  { title: '↓',             description: 'Move the cursor or selection down one line' },
+  'arrow-left':  { title: '←',             description: 'Move the cursor or selection left one character' },
+  'arrow-right': { title: '→',             description: 'Move the cursor or selection right one character' },
+};
+
+const RESOLVED_PRIMARY_TO_TOAST_KEY: Record<string, string> = {
+  Home: 'home',
+  End: 'end',
+  PageUp: 'pgup',
+  PageDown: 'pgdn',
+  Insert: 'insert',
+  Delete: 'delete',
+  ArrowUp: 'arrow-up',
+  ArrowDown: 'arrow-down',
+  ArrowLeft: 'arrow-left',
+  ArrowRight: 'arrow-right',
+};
+
+function getKeyToastInfo(
+  buttonName: string,
+  buttonConfig: Pick<KeyboardButton, 'id' | 'primary' | 'secondary'> | null | undefined,
+  numLock: boolean,
+): { title: string; description: string } | undefined {
+  let lookupKey = buttonName;
+  if (buttonConfig) {
+    const { primary } = resolveKeyFromConfig(buttonConfig, numLock);
+    lookupKey = RESOLVED_PRIMARY_TO_TOAST_KEY[primary] ?? buttonName;
+  }
+  return SPECIAL_KEY_TOAST_INFO[lookupKey];
+}
 
 // Generic component to detect hover and click on all keyboard buttons using actual DOM element positions
 function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: React.MutableRefObject<CSS3DRenderer | null>, css3DObjectRef: React.MutableRefObject<CSS3DObject | null> }) {
@@ -596,40 +704,12 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
           console.log(`Button "${buttonName}" clicked (no keyboard config found for type: ${keyboardType})`);
         }
 
-        // Show F-key info toast for all keyboards (only when pressed alone, no modifiers)
+        // Show key info toast (only when pressed alone, no modifiers)
         {
           const modifiers = getAllModifiers();
           const noModifiers = !modifiers.shift && !modifiers.ctrl && !modifiers.alt && !modifiers.meta && !modifiers.fn;
           if (noModifiers) {
-            const FKEY_INFO: Record<string, { title: string; description: string }> = {
-              'esc':         { title: 'Esc',          description: 'Cancel current action or close dialog' },
-              'tab':         { title: 'Tab',           description: 'Indent text in editors (often 2–4 spaces) or move focus to the next field in forms' },
-              'f1':          { title: 'F1',            description: 'Open Help in the active app' },
-              'f2':          { title: 'F2',            description: 'Rename the selected file or item' },
-              'f3':          { title: 'F3',            description: 'Open Find / Search in the active window' },
-              'f4':          { title: 'F4',            description: 'Show address bar list (Explorer) — Alt+F4 closes window' },
-              'f5':          { title: 'F5',            description: 'Refresh / Reload the current page or view' },
-              'f6':          { title: 'F6',            description: 'Move cursor to address bar (browser / Explorer)' },
-              'f7':          { title: 'F7',            description: 'Spell check in Word, Outlook and other Office apps' },
-              'f8':          { title: 'F8',            description: 'Enter Windows Recovery Environment (hold at startup)' },
-              'f9':          { title: 'F9',            description: 'Send & Receive in Outlook; recalculate in Excel' },
-              'f10':         { title: 'F10',           description: 'Activate the menu bar — Shift+F10 opens context menu' },
-              'f11':         { title: 'F11',           description: 'Toggle full-screen mode in browsers and File Explorer' },
-              'f12':         { title: 'F12',           description: 'Open Browser DevTools; Save As in Office apps' },
-              'prtsc':       { title: 'PrtSc',         description: 'Capture screenshot to clipboard — Win+PrtSc saves to Pictures/Screenshots' },
-              'capslock':    { title: 'Caps Lock',     description: 'Lock all letters to uppercase — press again to turn off' },
-              'numlock':     { title: 'Num Lock',      description: 'Toggle numpad between number input and navigation keys' },
-              'scroll-lock': { title: 'Scroll Lock',   description: 'Freeze row/column scrolling in spreadsheets — rarely used in modern apps' },
-              'pause-break': { title: 'Pause / Break', description: 'Pause a running process; Break sends an interrupt signal to the terminal' },
-              'menu':        { title: 'Menu',          description: 'Open the right-click context menu for the selected item (same as right-click)' },
-              'insert':      { title: 'Insert',        description: 'Toggle Insert vs Overwrite mode when typing in text editors' },
-              'home':        { title: 'Home',          description: 'Jump to the start of the line — Ctrl+Home goes to the top of the document' },
-              'end':         { title: 'End',           description: 'Jump to the end of the line — Ctrl+End goes to the bottom of the document' },
-              'pgup':        { title: 'Pg Up',         description: 'Scroll up one screen or move the cursor up one page' },
-              'pgdn':        { title: 'Pg Down',       description: 'Scroll down one screen or move the cursor down one page' },
-              'delete':      { title: 'Delete',        description: 'Remove the character after the cursor or delete the selected item' },
-            };
-            const info = FKEY_INFO[buttonName];
+            const info = getKeyToastInfo(buttonName, buttonConfig, numLock);
             if (info) {
               window.dispatchEvent(new CustomEvent('pc-fkey-info', { detail: info }));
             }
@@ -883,8 +963,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
 
           // Dispatch key press to DocumentEditor for display - ALL keys should be sent
           if (buttonConfig) {
-            const primary = buttonConfig.primary;
-            const secondary = buttonConfig.secondary || '';
+            const { primary, secondary } = resolveKeyFromConfig(buttonConfig, numLock);
             
             // Always send the key if Ctrl/Cmd/Alt/Shift is pressed (for shortcuts)
             
@@ -1425,6 +1504,10 @@ function KeyboardSyncHandler() {
     // Normalize key for matching
     const normalizedKey = key.length === 1 ? key.toLowerCase() : key;
 
+    if (NUMPAD_CODE_TO_BUTTON_ID[code]) {
+      return NUMPAD_CODE_TO_BUTTON_ID[code];
+    }
+
     // Handle special keys
     const specialKeyMap: Record<string, string> = {
       'Escape': 'esc',
@@ -1710,8 +1793,7 @@ function KeyboardSyncHandler() {
                 if (rModifiers.fn && rBtnConfig.fn && handleFnFunction) {
                   handleFnFunction(rBtnConfig.fn);
                 } else {
-                  const rPrimary = rBtnConfig.primary;
-                  const rSecondary = rBtnConfig.secondary || '';
+                  const { primary: rPrimary, secondary: rSecondary } = resolveKeyFromConfig(rBtnConfig, numLock);
                   const rKeyToSend = getCharacterToInsert(rPrimary, rSecondary, rModifiers.shift, rModifiers.capsLock);
                   handleKeyPress(rKeyToSend ?? rPrimary, rModifiers);
                 }
@@ -1813,9 +1895,8 @@ function KeyboardSyncHandler() {
                   return;
                 }
               } else {
-                // Use primary/secondary based on shift and caps lock
-                const primary = buttonConfig.primary;
-                const secondary = buttonConfig.secondary || '';
+                // Use primary/secondary based on shift, caps lock, and num lock
+                const { primary, secondary } = resolveKeyFromConfig(buttonConfig, numLock);
                 keyToSend = getCharacterToInsert(primary, secondary, modifiers.shift, modifiers.capsLock);
               }
 

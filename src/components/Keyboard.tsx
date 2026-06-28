@@ -2262,18 +2262,18 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
       },
       'pc': {
         fullscreen: {
-          sm: { scale: 0.005, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 2.9, objectZ: 0 },
-          md: { scale: 0.007, cameraX: 0, cameraZ: 17, cameraY: 4.5, objectX: 0, objectY: 4, objectZ: 0 },
-          lg: { scale: 0.009, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
-          xl: { scale: 0.011, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
-          '2xl': { scale: 0.013, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
+          sm: { scale: 0.006, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: -1, objectY: 2.9, objectZ: 0 },
+          md: { scale: 0.008, cameraX: 0, cameraZ: 17, cameraY: 4.5, objectX: -1.5, objectY: 4, objectZ: 0 },
+          lg: { scale: 0.012, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: -2, objectY: 3, objectZ: 0 },
+          xl: { scale: 0.016, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: -2.7, objectY: 3, objectZ: 0 },
+          '2xl': { scale: 0.019, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: -3.4, objectY: 3, objectZ: 0 },
         },
         normal: {
-          sm: { scale: 0.016, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 2.9, objectZ: 0 },
-          md: { scale: 0.016, cameraX: 0, cameraZ: 17, cameraY: 4.5, objectX: 0, objectY: 4, objectZ: 0 },
-          lg: { scale: 0.022, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
-          xl: { scale: 0.011, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
-          '2xl': { scale: 0.013, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: 0, objectY: 3, objectZ: 0 },
+          sm: { scale: 0.007, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: -1, objectY: 2.9, objectZ: 0 },
+          md: { scale: 0.010, cameraX: 0, cameraZ: 17, cameraY: 4.5, objectX: -1.7, objectY: 4, objectZ: 0 },
+          lg: { scale: 0.017, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: -3, objectY: 3, objectZ: 0 },
+          xl: { scale: 0.014, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: -3, objectY: 3, objectZ: 0 },
+          '2xl': { scale: 0.016, cameraX: 0, cameraY: 7, cameraZ: 20, objectX: -3, objectY: 3, objectZ: 0 },
         },
       },
     };

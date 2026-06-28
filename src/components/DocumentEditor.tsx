@@ -5,8 +5,18 @@ import { motion } from "framer-motion";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useKeyboardInput } from "@/contexts/KeyboardInputContext";
 import { createDebugLogger } from "@/lib/debug";
+import {
+  resolveDocumentShortcut,
+  getSelectionFocus,
+  type EditorSnapshot,
+} from "@/lib/document-editor-actions";
 
 const dbg = createDebugLogger('DocumentEditor');
+
+const EDITOR_SELECTION_BG = 'color-mix(in srgb, var(--primary) 38%, transparent)';
+const EDITOR_CARET_BG = 'var(--primary)';
+const EDITOR_OVERWRITE_BG = 'color-mix(in srgb, var(--primary) 35%, transparent)';
+const EDITOR_OVERWRITE_BORDER = 'var(--primary)';
 
 interface DocumentEditorProps {
   isFullscreen?: boolean;
@@ -58,6 +68,46 @@ function getCaretCoordinates(element: HTMLTextAreaElement, position: number) {
   return coordinates;
 }
 
+interface EditorRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
+function getSelectionRects(element: HTMLTextAreaElement, start: number, end: number): EditorRect[] {
+  if (start === end) return [];
+
+  const from = Math.min(start, end);
+  const to = Math.max(start, end);
+  const text = element.value;
+  const rects: EditorRect[] = [];
+
+  let lineStart = 0;
+  while (lineStart <= text.length) {
+    const lineBreak = text.indexOf('\n', lineStart);
+    const lineEnd = lineBreak === -1 ? text.length : lineBreak;
+    const selStartInLine = Math.max(from, lineStart);
+    const selEndInLine = Math.min(to, lineEnd);
+
+    if (selStartInLine < selEndInLine) {
+      const startCoords = getCaretCoordinates(element, selStartInLine);
+      const endCoords = getCaretCoordinates(element, selEndInLine);
+      rects.push({
+        top: startCoords.top,
+        left: startCoords.left,
+        width: Math.max(endCoords.left - startCoords.left, endCoords.width, 2),
+        height: startCoords.height,
+      });
+    }
+
+    if (lineBreak === -1) break;
+    lineStart = lineBreak + 1;
+  }
+
+  return rects;
+}
+
 const DocumentEditor = ({ 
   isFullscreen = false, 
   onToggleFullscreen
@@ -68,6 +118,8 @@ const DocumentEditor = ({
   const [isTyping, setIsTyping] = useState(false);
   const [caretPos, setCaretPos] = useState({ top: 0, left: 0, height: 20, width: 2 });
   const [caretVisible, setCaretVisible] = useState(true);
+  const [selectionRange, setSelectionRange] = useState({ start: 0, end: 0 });
+  const [selectionRects, setSelectionRects] = useState<EditorRect[]>([]);
   const [lastKeyPress, setLastKeyPress] = useState<{ key: string; modifiers?: { shift?: boolean; ctrl?: boolean; alt?: boolean; meta?: boolean; capsLock?: boolean } } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -80,6 +132,12 @@ const DocumentEditor = ({
   // Tracks the intended cursor position synchronously so fast typing stays
   // in order even when multiple setTimeout callbacks are still queued.
   const intendedCursorPosRef = useRef(0);
+  const selectionAnchorRef = useRef(0);
+  const findQueryRef = useRef<string | null>(null);
+  const historyRef = useRef<EditorSnapshot[]>([
+    { text: '', cursor: 0, selStart: 0, selEnd: 0 },
+  ]);
+  const historyIndexRef = useRef(0);
   
   // Log mount / unmount
   useEffect(() => {
@@ -101,32 +159,83 @@ const DocumentEditor = ({
   const lines = text.split('\n');
   const currentLine = text.substring(0, cursorPos).split('\n').length;
   const currentCol = text.substring(0, cursorPos).split('\n').pop()?.length || 0;
+  const hasSelection = selectionRange.start !== selectionRange.end;
 
-  const updateCaretPosition = (posOverride?: number) => {
+  const updateEditorVisuals = (posOverride?: number) => {
     if (!textareaRef.current) return;
-    
-    // Accept an explicit position so callers inside stale closures (e.g. scrollCaretIntoView
-    // captured by useCallback) don't fall back to a stale cursorPos from the initial render.
-    const pos = posOverride !== undefined ? posOverride : cursorPos;
+
     const textarea = textareaRef.current;
-    const coords = getCaretCoordinates(textarea, pos);
-    let width = isOverwrite ? 2 : 3;
-    
-    if (isOverwrite && pos < textarea.value.length && textarea.value[pos] !== '\n') {
-      width = Math.max(coords.width, 10);
+    const selStart = textarea.selectionStart;
+    const selEnd = textarea.selectionEnd;
+    setSelectionRange((prev) =>
+      prev.start === selStart && prev.end === selEnd
+        ? prev
+        : { start: selStart, end: selEnd },
+    );
+
+    if (selStart !== selEnd) {
+      setSelectionRects(getSelectionRects(textarea, selStart, selEnd));
+      const focusPos = getSelectionFocus(selectionAnchorRef.current, selStart, selEnd);
+      const coords = getCaretCoordinates(textarea, focusPos);
+      const isVisible =
+        textarea.clientHeight <= 0 ||
+        (coords.top + coords.height > 0 && coords.top < textarea.clientHeight);
+      setCaretVisible(isVisible);
+      setCaretPos({
+        top: coords.top,
+        left: coords.left,
+        height: coords.height,
+        width: 2,
+      });
+      return;
     }
 
-    const isVisible = coords.top >= 0 && coords.top + coords.height <= textarea.clientHeight;
-    
-    dbg('updateCaretPosition', { pos, coords, width, isVisible });
+    setSelectionRects([]);
+
+    const pos = posOverride !== undefined ? posOverride : textarea.selectionStart;
+    const coords = getCaretCoordinates(textarea, pos);
+    const atEnd = pos >= textarea.value.length;
+    const onNewline = pos < textarea.value.length && textarea.value[pos] === '\n';
+    const overwriteActive = isOverwrite && !atEnd && !onNewline;
+
+    let width = 2;
+    if (overwriteActive) {
+      width = Math.max(coords.width, 8);
+    }
+
+    // Show caret unless clearly scrolled out of the visible textarea area
+    const isVisible =
+      textarea.clientHeight <= 0 ||
+      (coords.top + coords.height > 0 && coords.top < textarea.clientHeight);
+
+    dbg('updateEditorVisuals', { pos, coords, width, isVisible, overwriteActive, hasSelection: false });
 
     setCaretVisible(isVisible);
     setCaretPos({
       top: coords.top,
       left: coords.left,
       height: coords.height,
-      width: width
+      width,
     });
+  };
+
+  const handleMouseDown = () => {
+    if (textareaRef.current) {
+      selectionAnchorRef.current = textareaRef.current.selectionStart;
+    }
+  };
+
+  const handleClick = () => {
+    dbg('handleClick (onClick/onMouseUp) scheduled');
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const { selectionStart, selectionEnd } = textareaRef.current;
+        intendedCursorPosRef.current = selectionEnd;
+        setCursorPos(selectionEnd);
+        setSelectionRange({ start: selectionStart, end: selectionEnd });
+        updateEditorVisuals(selectionEnd);
+      }
+    }, 0);
   };
 
   const scrollCaretIntoView = (position?: number) => {
@@ -152,13 +261,23 @@ const DocumentEditor = ({
     
     // Pass pos explicitly so this still works correctly when called from inside a stale
     // closure (e.g. handleVirtualKeyPress via useCallback with [] deps).
-    setTimeout(() => updateCaretPosition(pos), 0);
+    setTimeout(() => updateEditorVisuals(pos), 0);
   };
 
   useEffect(() => {
-    dbg('effect[cursorPos,text,isOverwrite] fired', { cursorPos, textLength: text.length, isOverwrite });
-    updateCaretPosition();
+    dbg('effect[cursorPos,text,isOverwrite] fired', {
+      cursorPos,
+      textLength: text.length,
+      isOverwrite,
+    });
+    updateEditorVisuals();
   }, [cursorPos, text, isOverwrite]);
+
+  // Initial layout pass — textarea dimensions are 0 until after first paint
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => updateEditorVisuals());
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     const textarea = textareaRef.current;
@@ -192,6 +311,7 @@ const DocumentEditor = ({
       e.preventDefault();
       dbg('handleKeyDown → Insert: toggling overwrite', { next: !isOverwrite });
       setIsOverwrite(!isOverwrite);
+      setTimeout(() => updateEditorVisuals(), 0);
       return;
     }
 
@@ -255,20 +375,19 @@ const DocumentEditor = ({
     }, 0);
   };
 
-  const handleClick = () => {
-    dbg('handleClick (onClick/onMouseUp) scheduled');
+  const handleSelect = () => {
     setTimeout(() => {
-      if (textareaRef.current) {
-        const pos = textareaRef.current.selectionStart;
-        intendedCursorPosRef.current = pos;
-        dbg('handleClick timer: setCursorPos', pos);
-        setCursorPos(pos);
-      }
+      if (!textareaRef.current) return;
+      const { selectionStart, selectionEnd } = textareaRef.current;
+      intendedCursorPosRef.current = selectionEnd;
+      setCursorPos(selectionEnd);
+      setSelectionRange({ start: selectionStart, end: selectionEnd });
+      updateEditorVisuals(selectionEnd);
     }, 0);
   };
 
   const handleScroll = () => {
-    updateCaretPosition();
+    updateEditorVisuals();
   };
 
   // Format keypress for display
@@ -373,28 +492,150 @@ const DocumentEditor = ({
     const domStart = textarea.selectionStart;
     const domEnd = textarea.selectionEnd;
     const hasSelection = domStart !== domEnd;
+    const selStart = hasSelection ? Math.min(domStart, domEnd) : intendedCursorPosRef.current;
+    const selEnd = hasSelection ? Math.max(domStart, domEnd) : intendedCursorPosRef.current;
+    const focus = hasSelection
+      ? getSelectionFocus(selectionAnchorRef.current, selStart, selEnd)
+      : intendedCursorPosRef.current;
     // For normal typing (no selection) use the intended position so rapid key presses
     // stay in sequence even before previous setTimeout callbacks have run.
-    const start = hasSelection ? domStart : intendedCursorPosRef.current;
-    const end   = hasSelection ? domEnd   : intendedCursorPosRef.current;
+    const start = hasSelection ? selStart : intendedCursorPosRef.current;
+    const end   = hasSelection ? selEnd   : intendedCursorPosRef.current;
     const ctrlOrMeta = modifiers?.ctrl || modifiers?.meta;
     const currentText = textRef.current;
     const currentIsOverwrite = isOverwriteRef.current;
 
     dbg('handleVirtualKeyPress', { key, modifiers, start, end, hasSelection, textLength: currentText.length });
 
-    // Handle Insert key
+    const applyEditorSnapshot = (snap: EditorSnapshot) => {
+      intendedCursorPosRef.current = snap.cursor;
+      if (snap.selStart === snap.selEnd) {
+        selectionAnchorRef.current = snap.cursor;
+      }
+      setSelectionRange({ start: snap.selStart, end: snap.selEnd });
+      setText(snap.text);
+      setTimeout(() => {
+        if (!textareaRef.current) return;
+        textareaRef.current.selectionStart = snap.selStart;
+        textareaRef.current.selectionEnd = snap.selEnd;
+        setCursorPos(snap.cursor);
+        scrollCaretIntoView(snap.cursor);
+      }, 0);
+    };
+
+    const commitMutation = (snap: EditorSnapshot) => {
+      const hist = historyRef.current.slice(0, historyIndexRef.current + 1);
+      hist.push(snap);
+      if (hist.length > 100) hist.shift();
+      historyRef.current = hist;
+      historyIndexRef.current = hist.length - 1;
+      applyEditorSnapshot(snap);
+    };
+
+    const editorState: EditorSnapshot = {
+      text: currentText,
+      cursor: focus,
+      selStart: start,
+      selEnd: end,
+    };
+
+    const shortcut = resolveDocumentShortcut({
+      key,
+      modifiers,
+      state: editorState,
+      selectionAnchor: hasSelection ? selectionAnchorRef.current : focus,
+      findQuery: findQueryRef.current,
+    });
+
+    if (shortcut.handled) {
+      if (shortcut.findQuery !== undefined) {
+        findQueryRef.current = shortcut.findQuery;
+      }
+      if (shortcut.selectionAnchor !== undefined) {
+        selectionAnchorRef.current = shortcut.selectionAnchor;
+      }
+      if (shortcut.sideEffect === 'undo') {
+        if (historyIndexRef.current > 0) {
+          historyIndexRef.current--;
+          applyEditorSnapshot(historyRef.current[historyIndexRef.current]);
+        }
+        return;
+      }
+      if (shortcut.sideEffect === 'redo') {
+        if (historyIndexRef.current < historyRef.current.length - 1) {
+          historyIndexRef.current++;
+          applyEditorSnapshot(historyRef.current[historyIndexRef.current]);
+        }
+        return;
+      }
+      if (shortcut.sideEffect === 'copy') {
+        if (hasSelection) {
+          navigator.clipboard.writeText(currentText.substring(start, end));
+        }
+        return;
+      }
+      if (shortcut.sideEffect === 'cut') {
+        if (hasSelection) {
+          navigator.clipboard.writeText(currentText.substring(start, end));
+          commitMutation({
+            text: currentText.substring(0, start) + currentText.substring(end),
+            cursor: start,
+            selStart: start,
+            selEnd: start,
+          });
+        }
+        return;
+      }
+      if (shortcut.sideEffect === 'paste') {
+        navigator.clipboard.readText().then(pastedText => {
+          const newPos = start + pastedText.length;
+          commitMutation({
+            text: currentText.substring(0, start) + pastedText + currentText.substring(end),
+            cursor: newPos,
+            selStart: newPos,
+            selEnd: newPos,
+          });
+        }).catch(() => {
+          dbg('vkp → paste: clipboard access denied');
+        });
+        return;
+      }
+      if (shortcut.snapshot) {
+        if (ctrlOrMeta && key.toLowerCase() === 'n') {
+          historyRef.current = [shortcut.snapshot];
+          historyIndexRef.current = 0;
+          findQueryRef.current = null;
+          applyEditorSnapshot(shortcut.snapshot);
+          return;
+        }
+        if (shortcut.snapshot.text !== currentText) {
+          commitMutation(shortcut.snapshot);
+        } else {
+          applyEditorSnapshot(shortcut.snapshot);
+        }
+        return;
+      }
+      return;
+    }
+
+    // Handle Insert key (toggle overwrite)
     if (key === 'Insert') {
       dbg('vkp → Insert: toggling overwrite', { next: !currentIsOverwrite });
       setIsOverwrite(!currentIsOverwrite);
+      setTimeout(() => updateEditorVisuals(), 0);
       return;
     }
 
     // Handle Ctrl/Cmd + A (Select All)
     if (ctrlOrMeta && key.toLowerCase() === 'a') {
       dbg('vkp → Ctrl+A: select all');
-      textarea.select();
-      setCursorPos(textarea.selectionStart);
+      selectionAnchorRef.current = 0;
+      intendedCursorPosRef.current = currentText.length;
+      textarea.selectionStart = 0;
+      textarea.selectionEnd = currentText.length;
+      setSelectionRange({ start: 0, end: currentText.length });
+      setCursorPos(currentText.length);
+      setTimeout(() => updateEditorVisuals(currentText.length), 0);
       return;
     }
 
@@ -412,15 +653,12 @@ const DocumentEditor = ({
       dbg('vkp → Ctrl+X: cut', { hasSelection, start, end });
       if (hasSelection) {
         navigator.clipboard.writeText(currentText.substring(start, end));
-        const newText = currentText.substring(0, start) + currentText.substring(end);
-        intendedCursorPosRef.current = start;
-        setText(newText);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start;
-          dbg('vkp → Ctrl+X timer: setCursorPos', start);
-          setCursorPos(start);
-          scrollCaretIntoView(start);
-        }, 0);
+        commitMutation({
+          text: currentText.substring(0, start) + currentText.substring(end),
+          cursor: start,
+          selStart: start,
+          selEnd: start,
+        });
       }
       return;
     }
@@ -430,25 +668,15 @@ const DocumentEditor = ({
       dbg('vkp → Ctrl+V: paste start', { start, end });
       navigator.clipboard.readText().then(pastedText => {
         const newPos = start + pastedText.length;
-        const newText = currentText.substring(0, start) + pastedText + currentText.substring(end);
-        intendedCursorPosRef.current = newPos;
-        setText(newText);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = newPos;
-          dbg('vkp → Ctrl+V timer: setCursorPos', newPos);
-          setCursorPos(newPos);
-          scrollCaretIntoView(newPos);
-        }, 0);
+        commitMutation({
+          text: currentText.substring(0, start) + pastedText + currentText.substring(end),
+          cursor: newPos,
+          selStart: newPos,
+          selEnd: newPos,
+        });
       }).catch(() => {
         dbg('vkp → Ctrl+V: clipboard access denied');
       });
-      return;
-    }
-
-    // Handle Ctrl/Cmd + Z (Undo) - simple implementation
-    if (ctrlOrMeta && key.toLowerCase() === 'z') {
-      dbg('vkp → Ctrl+Z: undo (not implemented)');
-      // A full implementation would require maintaining a history stack
       return;
     }
 
@@ -456,26 +684,20 @@ const DocumentEditor = ({
     if (key === 'Backspace') {
       if (hasSelection) {
         dbg('vkp → Backspace: delete selection', { start, end });
-        const newText = currentText.substring(0, start) + currentText.substring(end);
-        intendedCursorPosRef.current = start;
-        setText(newText);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start;
-          dbg('vkp → Backspace (selection) timer: setCursorPos', start);
-          setCursorPos(start);
-          scrollCaretIntoView(start);
-        }, 0);
+        commitMutation({
+          text: currentText.substring(0, start) + currentText.substring(end),
+          cursor: start,
+          selStart: start,
+          selEnd: start,
+        });
       } else if (start > 0) {
         dbg('vkp → Backspace: delete char at', start - 1);
-        const newText = currentText.substring(0, start - 1) + currentText.substring(start);
-        intendedCursorPosRef.current = start - 1;
-        setText(newText);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start - 1;
-          dbg('vkp → Backspace (char) timer: setCursorPos', start - 1);
-          setCursorPos(start - 1);
-          scrollCaretIntoView(start - 1);
-        }, 0);
+        commitMutation({
+          text: currentText.substring(0, start - 1) + currentText.substring(start),
+          cursor: start - 1,
+          selStart: start - 1,
+          selEnd: start - 1,
+        });
       } else {
         dbg('vkp → Backspace: nothing to delete (start=0)');
       }
@@ -486,26 +708,20 @@ const DocumentEditor = ({
     if (key === 'Delete') {
       if (hasSelection) {
         dbg('vkp → Delete: delete selection', { start, end });
-        const newText = currentText.substring(0, start) + currentText.substring(end);
-        intendedCursorPosRef.current = start;
-        setText(newText);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start;
-          dbg('vkp → Delete (selection) timer: setCursorPos', start);
-          setCursorPos(start);
-          scrollCaretIntoView(start);
-        }, 0);
+        commitMutation({
+          text: currentText.substring(0, start) + currentText.substring(end),
+          cursor: start,
+          selStart: start,
+          selEnd: start,
+        });
       } else if (start < currentText.length) {
         dbg('vkp → Delete: delete char at', start);
-        const newText = currentText.substring(0, start) + currentText.substring(start + 1);
-        intendedCursorPosRef.current = start;
-        setText(newText);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start;
-          dbg('vkp → Delete (char) timer: setCursorPos', start);
-          setCursorPos(start);
-          scrollCaretIntoView(start);
-        }, 0);
+        commitMutation({
+          text: currentText.substring(0, start) + currentText.substring(start + 1),
+          cursor: start,
+          selStart: start,
+          selEnd: start,
+        });
       } else {
         dbg('vkp → Delete: nothing to delete (at end)');
       }
@@ -522,15 +738,12 @@ const DocumentEditor = ({
       }
       typingTimerRef.current = setTimeout(() => setIsTyping(false), 500);
 
-      const newText = currentText.substring(0, start) + '\n' + currentText.substring(end);
-      intendedCursorPosRef.current = enterPos;
-      setText(newText);
-      setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = enterPos;
-        dbg('vkp → Enter timer: setCursorPos', enterPos);
-        setCursorPos(enterPos);
-        scrollCaretIntoView(enterPos);
-      }, 0);
+      commitMutation({
+        text: currentText.substring(0, start) + '\n' + currentText.substring(end),
+        cursor: enterPos,
+        selStart: enterPos,
+        selEnd: enterPos,
+      });
       return;
     }
 
@@ -543,17 +756,14 @@ const DocumentEditor = ({
       }
       typingTimerRef.current = setTimeout(() => setIsTyping(false), 500);
 
-      const tabText = '  '; // 2 spaces for tab
+      const tabText = '  ';
       const tabPos = start + tabText.length;
-      const newText = currentText.substring(0, start) + tabText + currentText.substring(end);
-      intendedCursorPosRef.current = tabPos;
-      setText(newText);
-      setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = tabPos;
-        dbg('vkp → Tab timer: setCursorPos', tabPos);
-        setCursorPos(tabPos);
-        scrollCaretIntoView(tabPos);
-      }, 0);
+      commitMutation({
+        text: currentText.substring(0, start) + tabText + currentText.substring(end),
+        cursor: tabPos,
+        selStart: tabPos,
+        selEnd: tabPos,
+      });
       return;
     }
 
@@ -561,6 +771,7 @@ const DocumentEditor = ({
     if (key === 'ArrowLeft') {
       const newPos = Math.max(0, start - 1);
       dbg('vkp → ArrowLeft', { from: start, to: newPos });
+      selectionAnchorRef.current = newPos;
       intendedCursorPosRef.current = newPos;
       textarea.selectionStart = textarea.selectionEnd = newPos;
       setCursorPos(newPos);
@@ -571,6 +782,7 @@ const DocumentEditor = ({
     if (key === 'ArrowRight') {
       const newPos = Math.min(currentText.length, start + 1);
       dbg('vkp → ArrowRight', { from: start, to: newPos });
+      selectionAnchorRef.current = newPos;
       intendedCursorPosRef.current = newPos;
       textarea.selectionStart = textarea.selectionEnd = newPos;
       setCursorPos(newPos);
@@ -589,6 +801,7 @@ const DocumentEditor = ({
         const newPos = currentText.substring(0, start).lastIndexOf('\n') - (lines[currentLine]?.length || 0) + newCol;
         const actualPos = Math.max(0, newPos);
         dbg('vkp → ArrowUp', { from: start, to: actualPos, currentLine });
+        selectionAnchorRef.current = actualPos;
         intendedCursorPosRef.current = actualPos;
         textarea.selectionStart = textarea.selectionEnd = actualPos;
         setCursorPos(actualPos);
@@ -611,6 +824,7 @@ const DocumentEditor = ({
         const newCol = Math.min(currentCol, nextLine.length);
         const newPos = start + nextLineBreak + 1 + newCol;
         dbg('vkp → ArrowDown', { from: start, to: newPos, currentLine });
+        selectionAnchorRef.current = newPos;
         intendedCursorPosRef.current = newPos;
         textarea.selectionStart = textarea.selectionEnd = newPos;
         setCursorPos(newPos);
@@ -618,6 +832,7 @@ const DocumentEditor = ({
       } else {
         const endPos = currentText.length;
         dbg('vkp → ArrowDown: no next line → end of doc', endPos);
+        selectionAnchorRef.current = endPos;
         intendedCursorPosRef.current = endPos;
         textarea.selectionStart = textarea.selectionEnd = endPos;
         setCursorPos(endPos);
@@ -631,6 +846,7 @@ const DocumentEditor = ({
       const lines = currentText.substring(0, start).split('\n');
       const currentLineStart = start - (lines[lines.length - 1]?.length || 0);
       dbg('vkp → Home', { from: start, to: currentLineStart });
+      selectionAnchorRef.current = currentLineStart;
       intendedCursorPosRef.current = currentLineStart;
       textarea.selectionStart = textarea.selectionEnd = currentLineStart;
       setCursorPos(currentLineStart);
@@ -646,6 +862,7 @@ const DocumentEditor = ({
       const nextLineBreak = remainingText.indexOf('\n');
       const lineEnd = nextLineBreak === -1 ? currentText.length : currentLineStart + nextLineBreak;
       dbg('vkp → End', { from: start, to: lineEnd });
+      selectionAnchorRef.current = lineEnd;
       intendedCursorPosRef.current = lineEnd;
       textarea.selectionStart = textarea.selectionEnd = lineEnd;
       setCursorPos(lineEnd);
@@ -656,6 +873,7 @@ const DocumentEditor = ({
     // Handle PageUp (move to start of document)
     if (key === 'PageUp') {
       dbg('vkp → PageUp: jump to 0');
+      selectionAnchorRef.current = 0;
       intendedCursorPosRef.current = 0;
       textarea.selectionStart = textarea.selectionEnd = 0;
       setCursorPos(0);
@@ -667,6 +885,7 @@ const DocumentEditor = ({
     if (key === 'PageDown') {
       const endPos = currentText.length;
       dbg('vkp → PageDown: jump to end', endPos);
+      selectionAnchorRef.current = endPos;
       intendedCursorPosRef.current = endPos;
       textarea.selectionStart = textarea.selectionEnd = endPos;
       setCursorPos(endPos);
@@ -685,27 +904,21 @@ const DocumentEditor = ({
       if (currentIsOverwrite && !hasSelection && start < currentText.length && currentText[start] !== '\n') {
         const newPos = start + 1;
         dbg('vkp → printable (overwrite)', { key, start, nextPos: newPos });
-        const newText = currentText.substring(0, start) + key + currentText.substring(start + 1);
-        intendedCursorPosRef.current = newPos;
-        setText(newText);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = newPos;
-          dbg('vkp → printable (overwrite) timer: setCursorPos', newPos);
-          setCursorPos(newPos);
-          scrollCaretIntoView(newPos);
-        }, 0);
+        commitMutation({
+          text: currentText.substring(0, start) + key + currentText.substring(start + 1),
+          cursor: newPos,
+          selStart: newPos,
+          selEnd: newPos,
+        });
       } else {
         const newPos = start + 1;
         dbg('vkp → printable (insert)', { key, start, nextPos: newPos });
-        const newText = currentText.substring(0, start) + key + currentText.substring(end);
-        intendedCursorPosRef.current = newPos;
-        setText(newText);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = newPos;
-          dbg('vkp → printable (insert) timer: setCursorPos', newPos);
-          setCursorPos(newPos);
-          scrollCaretIntoView(newPos);
-        }, 0);
+        commitMutation({
+          text: currentText.substring(0, start) + key + currentText.substring(end),
+          cursor: newPos,
+          selStart: newPos,
+          selEnd: newPos,
+        });
       }
     } else {
       dbg('vkp → unhandled key', { key, ctrlOrMeta, alt: modifiers?.alt });
@@ -788,29 +1001,44 @@ const DocumentEditor = ({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.2 }}
         className="flex-1 pl-6 pr-2 overflow-hidden relative"
-        style={{ cursor: 'text' }}
+        style={{ cursor: isOverwrite ? 'cell' : 'text' }}
       >
-        <div className="relative w-full h-full overflow-auto custom-scrollbar">
+        <div className="h-full overflow-auto custom-scrollbar" onScroll={handleScroll}>
+          <div className="relative w-full min-h-full">
           <textarea
             ref={textareaRef}
             value={text}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
+            onMouseDown={handleMouseDown}
             onClick={handleClick}
             onMouseUp={handleClick}
-            onScroll={handleScroll}
-            className="w-full min-h-full font-mono text-xs sm:text-sm md:text-base leading-relaxed bg-transparent text-foreground resize-none outline-none border-none focus:ring-0 focus:outline-none whitespace-pre-wrap break-words hide-scrollbar"
+            onSelect={handleSelect}
+            className="document-editor-textarea w-full min-h-full font-mono text-xs sm:text-sm md:text-base leading-relaxed bg-transparent text-foreground resize-none outline-none border-none focus:ring-0 focus:outline-none whitespace-pre-wrap break-words hide-scrollbar block"
             placeholder="Start typing... Press Insert to toggle overwrite mode"
             spellCheck={false}
-            style={{ 
-              wordWrap: 'break-word', 
-              overflowWrap: 'break-word', 
-              cursor: 'text',
+            style={{
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              cursor: isOverwrite ? 'cell' : 'text',
               caretColor: 'transparent',
               lineHeight: '1.5',
-              padding: 0
+              padding: 0,
             }}
           />
+          {selectionRects.map((rect, index) => (
+            <div
+              key={`sel-${index}-${rect.top}-${rect.left}`}
+              className="absolute pointer-events-none rounded-sm"
+              style={{
+                left: `${rect.left}px`,
+                top: `${rect.top}px`,
+                width: `${rect.width}px`,
+                height: `${rect.height}px`,
+                backgroundColor: EDITOR_SELECTION_BG,
+              }}
+            />
+          ))}
           <div
             className="absolute pointer-events-none"
             style={{
@@ -818,13 +1046,31 @@ const DocumentEditor = ({
               top: `${caretPos.top}px`,
               width: `${caretPos.width}px`,
               height: `${caretPos.height}px`,
-              backgroundColor: 'var(--primary)',
-              opacity: isOverwrite ? 0.6 : 1,
-              animation: isTyping ? 'none' : 'blink 1s step-end infinite',
               display: caretVisible ? 'block' : 'none',
-              borderRadius: isOverwrite ? '2px' : '1px'
+              ...(hasSelection
+                ? {
+                    backgroundColor: EDITOR_CARET_BG,
+                    borderRadius: '1px',
+                    animation: 'doc-editor-caret-blink 1s step-end infinite',
+                  }
+                : isOverwrite &&
+                  cursorPos < text.length &&
+                  text[cursorPos] !== '\n'
+                  ? {
+                      backgroundColor: EDITOR_OVERWRITE_BG,
+                      border: `2px solid ${EDITOR_OVERWRITE_BORDER}`,
+                      borderRadius: '2px',
+                      boxSizing: 'border-box',
+                      animation: 'none',
+                    }
+                  : {
+                      backgroundColor: EDITOR_CARET_BG,
+                      borderRadius: '1px',
+                      animation: isTyping ? 'none' : 'doc-editor-caret-blink 1s step-end infinite',
+                    }),
             }}
           />
+          </div>
         </div>
       </motion.div>
       
@@ -839,13 +1085,14 @@ const DocumentEditor = ({
             { label: "Chars", value: text.length },
             { label: "Lines", value: lines.length },
             { label: "Pos", value: `${currentLine}:${currentCol + 1}` },
+            { label: "Mode", value: isOverwrite ? "OVR" : "INS" },
           ].map((stat, index) => (
             <motion.span
               key={stat.label}
               initial={{ opacity: 0, x: -5 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
-              className="font-medium truncate"
+              className={`font-medium truncate ${stat.label === 'Mode' ? (isOverwrite ? 'text-amber-500/90' : 'text-primary/80') : ''}`}
             >
               {stat.label}: {stat.value}
             </motion.span>
@@ -863,8 +1110,12 @@ const DocumentEditor = ({
         )}
       </motion.div>
       <style>{`
-        @keyframes blink {
-          0%, 49% { opacity: ${isOverwrite ? 0.6 : 1}; }
+        .document-editor-textarea::selection {
+          background: color-mix(in srgb, var(--primary) 38%, transparent);
+          color: inherit;
+        }
+        @keyframes doc-editor-caret-blink {
+          0%, 49% { opacity: 1; }
           50%, 100% { opacity: 0; }
         }
       `}</style>

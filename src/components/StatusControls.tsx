@@ -197,12 +197,14 @@ export default function StatusControls() {
     scrollLock,
     fnLock,
     fnHold,
+    winLock,
     insert,
     toggleCapsLock,
     toggleNumLock,
     toggleScrollLock,
     toggleFnLock,
     toggleFnHold,
+    toggleWinLock,
     toggleInsert,
   } = useKeyboardLock();
   const { subscribe } = useFnFunction();
@@ -287,6 +289,7 @@ export default function StatusControls() {
     { isActive: scrollLock, label: "Scroll Lock", icon: <Keyboard className="w-4 h-4" />, onClick: toggleScrollLock },
     { isActive: fnLock, label: "Fn Lock", icon: <Keyboard className="w-4 h-4" />, onClick: toggleFnLock },
     { isActive: fnHold, label: "Fn Hold", icon: <Keyboard className="w-4 h-4" />, onClick: toggleFnHold },
+    { isActive: winLock, label: "Win Lock", icon: <Keyboard className="w-4 h-4" />, onClick: toggleWinLock },
     { isActive: insert, label: "Insert", icon: <Keyboard className="w-4 h-4" />, onClick: toggleInsert },
   ];
 

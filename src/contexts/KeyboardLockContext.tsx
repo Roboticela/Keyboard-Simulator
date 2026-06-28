@@ -13,6 +13,8 @@ interface KeyboardLockContextType {
   setFnLock: (enabled: boolean) => void;
   fnHold: boolean;
   setFnHold: (enabled: boolean) => void;
+  winLock: boolean;
+  setWinLock: (enabled: boolean) => void;
   insert: boolean;
   setInsert: (enabled: boolean) => void;
   toggleCapsLock: () => void;
@@ -20,6 +22,7 @@ interface KeyboardLockContextType {
   toggleScrollLock: () => void;
   toggleFnLock: () => void;
   toggleFnHold: () => void;
+  toggleWinLock: () => void;
   toggleInsert: () => void;
 }
 
@@ -31,6 +34,7 @@ export function KeyboardLockProvider({ children }: { children: ReactNode }) {
   const [scrollLock, setScrollLock] = useState(false);
   const [fnLock, setFnLock] = useState(false);
   const [fnHold, setFnHold] = useState(false);
+  const [winLock, setWinLock] = useState(false);
   const [insert, setInsert] = useState(false);
 
   const toggleCapsLock = () => setCapsLock(prev => !prev);
@@ -38,6 +42,7 @@ export function KeyboardLockProvider({ children }: { children: ReactNode }) {
   const toggleScrollLock = () => setScrollLock(prev => !prev);
   const toggleFnLock = () => setFnLock(prev => !prev);
   const toggleFnHold = () => setFnHold(prev => !prev);
+  const toggleWinLock = () => setWinLock(prev => !prev);
   const toggleInsert = () => setInsert(prev => !prev);
 
   return (
@@ -53,6 +58,8 @@ export function KeyboardLockProvider({ children }: { children: ReactNode }) {
         setFnLock,
         fnHold,
         setFnHold,
+        winLock,
+        setWinLock,
         insert,
         setInsert,
         toggleCapsLock,
@@ -60,6 +67,7 @@ export function KeyboardLockProvider({ children }: { children: ReactNode }) {
         toggleScrollLock,
         toggleFnLock,
         toggleFnHold,
+        toggleWinLock,
         toggleInsert,
       }}
     >

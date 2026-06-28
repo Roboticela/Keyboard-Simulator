@@ -131,10 +131,15 @@ function getKeyToastInfo(
   buttonName: string,
   buttonConfig: Pick<KeyboardButton, 'id' | 'primary' | 'secondary'> | null | undefined,
   numLock: boolean,
+  winLock: boolean,
 ): { title: string; description: string } | undefined {
   let lookupKey = buttonName;
   if (buttonConfig) {
     const { primary } = resolveKeyFromConfig(buttonConfig, numLock);
+    if (primary === 'Meta') {
+      if (winLock) return undefined;
+      return { title: 'Win', description: 'Open Start menu' };
+    }
     lookupKey = RESOLVED_PRIMARY_TO_TOAST_KEY[primary] ?? buttonName;
   }
   return SPECIAL_KEY_TOAST_INFO[lookupKey];
@@ -152,6 +157,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
     insert,
     fnLock,
     fnHold,
+    winLock,
     toggleCapsLock,
     toggleNumLock,
     toggleScrollLock,
@@ -487,8 +493,12 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
     if (!buttonConfig) return false;
 
     const primary = buttonConfig.primary.toLowerCase();
+    if (primary === 'meta') return winLock;
     return primary === 'shift' || primary === 'control' || primary === 'alt' || primary === 'fn';
   };
+
+  const isWinButtonName = (name: string): boolean =>
+    name === 'windows-left' || name === 'windows-right' || name === 'windows';
 
   // Helper function to release all toggled modifier keys
   const releaseAllModifierKeys = () => {
@@ -511,15 +521,12 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
       removeClickEffect(button);
     });
 
-    // Clear all except fn if fnHold is enabled
+    toggledModifierKeysRef.current.clear();
+
     if (fnHold && fnButton) {
-      toggledModifierKeysRef.current.clear();
       toggledModifierKeysRef.current.add(fnButton);
-      // Keep fnKeyPressedRef.current true when fnHold is enabled
       fnKeyPressedRef.current = true;
     } else {
-      toggledModifierKeysRef.current.clear();
-      // Release fn key ref when fnHold is not enabled
       fnKeyPressedRef.current = false;
     }
   };
@@ -719,7 +726,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
             !modifiers.fn;
 
           if (noModifiers) {
-            const info = getKeyToastInfo(buttonName, buttonConfig, numLock);
+            const info = getKeyToastInfo(buttonName, buttonConfig, numLock, winLock);
             if (info) {
               window.dispatchEvent(new CustomEvent('pc-fkey-info', { detail: info }));
             }
@@ -891,7 +898,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
         if (isModifier) {
           // Get current modifier states for display (before toggling)
           const modifiers = getAllModifiers();
-          
+
           // Toggle modifier key state
           if (toggledModifierKeysRef.current.has(buttonUnderMouse)) {
             // Already toggled - untoggle it
@@ -1101,7 +1108,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
       gl.domElement.removeEventListener('mouseup', handleMouseUp);
       gl.domElement.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [gl, css3DRendererRef, keyboardType, fnLock, fnHold, toggleFnLock, toggleFnHold, capsLock]);
+  }, [gl, css3DRendererRef, keyboardType, fnLock, fnHold, winLock, toggleFnLock, toggleFnHold, capsLock]);
 
   // Handle fnHold state - keep fn key held when fnHold is enabled
   useEffect(() => {
@@ -1132,6 +1139,18 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
       }
     }
   }, [fnHold, css3DRendererRef, keyboardType]);
+
+  // When Win Lock is disabled, release any Win keys held as modifiers
+  useEffect(() => {
+    if (winLock) return;
+
+    for (const [btn, name] of buttonsRef.current) {
+      if (isWinButtonName(name) && toggledModifierKeysRef.current.has(btn)) {
+        removeClickEffect(btn);
+        toggledModifierKeysRef.current.delete(btn);
+      }
+    }
+  }, [winLock, css3DRendererRef, keyboardType]);
 
   // Update clicked buttons' colors when theme changes
   useEffect(() => {

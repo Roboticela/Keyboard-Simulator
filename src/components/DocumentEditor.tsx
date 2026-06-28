@@ -6,6 +6,7 @@ import { Maximize2, Minimize2 } from "lucide-react";
 import { useKeyboardInput } from "@/contexts/KeyboardInputContext";
 import { useKeyboardLock } from "@/contexts/KeyboardLockContext";
 import { createDebugLogger } from "@/lib/debug";
+import { modifiersForKeyDisplay } from "@/lib/key-display";
 import {
   resolveDocumentShortcut,
   getSelectionFocus,
@@ -400,13 +401,14 @@ const DocumentEditor = ({
 
   // Format keypress for display
   const formatKeyPress = (key: string, modifiers?: { shift?: boolean; ctrl?: boolean; alt?: boolean; meta?: boolean; capsLock?: boolean; fn?: boolean }): string => {
+    const displayModifiers = modifiersForKeyDisplay(key, modifiers ?? {});
     const parts: string[] = [];
     
-    if (modifiers?.ctrl) parts.push('Ctrl');
-    if (modifiers?.meta) parts.push('Cmd');
-    if (modifiers?.alt) parts.push('Alt');
-    if (modifiers?.shift) parts.push('Shift');
-    if (modifiers?.fn) parts.push('Fn');
+    if (displayModifiers.ctrl) parts.push('Ctrl');
+    if (displayModifiers.meta) parts.push('Win');
+    if (displayModifiers.alt) parts.push('Alt');
+    if (displayModifiers.shift) parts.push('Shift');
+    if (displayModifiers.fn) parts.push('Fn');
     
     // Format the key name
     let keyName = key;
@@ -430,7 +432,8 @@ const DocumentEditor = ({
       'Shift': 'Shift',
       'Control': 'Ctrl',
       'Alt': 'Alt',
-      'Meta': 'Cmd',
+      'Meta': 'Win',
+      'Windows': 'Win',
       'CapsLock': 'CapsLock',
       'NumLock': 'NumLock',
       'ScrollLock': 'ScrollLock',

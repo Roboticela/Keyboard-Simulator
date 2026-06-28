@@ -1,3 +1,4 @@
+import { modifiersForKeyDisplay } from '@/lib/key-display';
 import type { KeyboardButton } from '@/lib/keyboard-button-types';
 import { windowsShortcutEntries } from '@/lib/content/quiz-shortcuts';
 
@@ -82,13 +83,14 @@ function formatKeyLabel(primary: string): string {
   return primary;
 }
 
-function buildShortcutLabel(modifiers: KeyModifiers, keyLabel: string): string {
+function buildShortcutLabel(modifiers: KeyModifiers, keyLabel: string, primaryKey?: string): string {
+  const displayModifiers = modifiersForKeyDisplay(primaryKey ?? keyLabel, modifiers);
   const parts: string[] = [];
-  if (modifiers.ctrl) parts.push('Ctrl');
-  if (modifiers.alt) parts.push('Alt');
-  if (modifiers.shift) parts.push('Shift');
-  if (modifiers.meta) parts.push('Win');
-  if (modifiers.fn) parts.push('Fn');
+  if (displayModifiers.ctrl) parts.push('Ctrl');
+  if (displayModifiers.alt) parts.push('Alt');
+  if (displayModifiers.shift) parts.push('Shift');
+  if (displayModifiers.meta) parts.push('Win');
+  if (displayModifiers.fn) parts.push('Fn');
   parts.push(keyLabel);
   return parts.join(' + ');
 }
@@ -254,7 +256,7 @@ export function getShortcutToastInfo(
 ): { title: string; description: string } {
   const { primary } = resolveKeyFromConfig(buttonConfig, numLock);
   const keyLabel = formatKeyLabel(primary);
-  const title = buildShortcutLabel(modifiers, keyLabel);
+  const title = buildShortcutLabel(modifiers, keyLabel, primary);
   const description =
     lookupShortcutDescription(title) ?? DEFAULT_UNUSED_DESCRIPTION;
 

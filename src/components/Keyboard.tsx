@@ -32,6 +32,7 @@ import {
   getShortcutToastInfo,
   shouldShowShortcutToast,
 } from '@/lib/keyboard-shortcut-toasts';
+import { modifiersForKeyDisplay, isMetaKeyEvent } from '@/lib/key-display';
 
 const NUMPAD_ALWAYS_PRIMARY_IDS = new Set([
   'numlock',
@@ -1615,21 +1616,21 @@ function KeyboardSyncHandler() {
     if (key === 'Alt') {
       return code.includes('Left') ? 'alt-left' : 'alt-right';
     }
-    if (key === 'Meta' || key === 'OS' || key === 'Windows') {
-      // Check keyboard config to see if it uses 'Windows' or 'Meta'
+    if (isMetaKeyEvent(key, code)) {
+      const isRight = code.includes('Right');
+      const sideId = isRight ? 'windows-right' : 'windows-left';
+      if (keyboardConfig.some(btn => btn.id === sideId)) {
+        return sideId;
+      }
       const windowsButton = keyboardConfig.find(btn => btn.id === 'windows');
       if (windowsButton) {
-        // If config uses 'Windows' as primary, check if key matches
-        if (windowsButton.primary === 'Windows' && (key === 'Windows' || key === 'Meta' || key === 'OS')) {
-          return 'windows';
-        }
-        // If config uses 'Meta' as primary, check if key matches
-        if (windowsButton.primary === 'Meta' && (key === 'Meta' || key === 'OS' || key === 'Windows')) {
-          return 'windows';
-        }
+        return 'windows';
       }
-      // Fallback
-      return 'windows';
+      const anyWinKey = keyboardConfig.find(
+        btn => btn.primary === 'Meta' || btn.primary === 'Windows',
+      );
+      if (anyWinKey) return anyWinKey.id;
+      return sideId;
     }
     if (key === 'Fn') {
       return 'fn';
@@ -1804,6 +1805,20 @@ function KeyboardSyncHandler() {
       'Shift', 'Control', 'Alt', 'Meta', 'Fn',
     ]);
 
+    const emitKeyPress = (
+      pressedKey: string,
+      pressedModifiers: {
+        shift: boolean;
+        ctrl: boolean;
+        alt: boolean;
+        meta: boolean;
+        fn: boolean;
+        capsLock: boolean;
+      },
+    ) => {
+      handleKeyPress(pressedKey, modifiersForKeyDisplay(pressedKey, pressedModifiers));
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key;
       const code = e.code;
@@ -1850,12 +1865,12 @@ function KeyboardSyncHandler() {
                 } else {
                   const { primary: rPrimary, secondary: rSecondary } = resolveKeyFromConfig(rBtnConfig, numLock);
                   const rKeyToSend = getCharacterToInsert(rPrimary, rSecondary, rModifiers.shift, rModifiers.capsLock);
-                  handleKeyPress(rKeyToSend ?? rPrimary, rModifiers);
+                  emitKeyPress(rKeyToSend ?? rPrimary, rModifiers);
                 }
               }
             }
           } else if (isPrintScreen) {
-            handleKeyPress('PrintScreen', rModifiers);
+            emitKeyPress('PrintScreen', rModifiers);
           }
         }
         return;
@@ -1956,20 +1971,28 @@ function KeyboardSyncHandler() {
               }
 
               if (keyToSend !== null) {
-                handleKeyPress(keyToSend, modifiers);
+                emitKeyPress(keyToSend, modifiers);
               } else {
                 // Fallback: send the primary key
-                handleKeyPress(buttonConfig.primary, modifiers);
+                emitKeyPress(buttonConfig.primary, modifiers);
               }
             }
-          } else if (key.length > 1) {
+          } else if (key.length > 1 || isMetaKeyEvent(key, code)) {
             // Mapped button id missing from config — still forward the browser key
-            handleKeyPress(key, modifiers);
+            emitKeyPress(isMetaKeyEvent(key, code) ? 'Meta' : key, modifiers);
           } else if (isPrintScreen) {
             // If Print Screen button config not found, still send the key
-            handleKeyPress('PrintScreen', modifiers);
+            emitKeyPress('PrintScreen', modifiers);
           }
         }
+      } else if (isMetaKeyEvent(key, code)) {
+        const sideId = code.includes('Right') ? 'windows-right' : 'windows-left';
+        const buttonElement = findButtonByID(sideId);
+        if (buttonElement) {
+          applyClickEffect(buttonElement);
+          pressedButtonsRef.current.set(keyId, buttonElement);
+        }
+        emitKeyPress('Meta', modifiers);
       }
     };
 
@@ -2098,7 +2121,7 @@ function KeyboardSyncHandler() {
         }
         
         // Send key press
-        handleKeyPress('PrintScreen', modifiers);
+        emitKeyPress('PrintScreen', modifiers);
       }
     };
     

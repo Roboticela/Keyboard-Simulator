@@ -24,6 +24,7 @@ interface KeyboardLockContextType {
   toggleFnHold: () => void;
   toggleWinLock: () => void;
   toggleInsert: () => void;
+  resetLocks: () => void;
 }
 
 const KeyboardLockContext = createContext<KeyboardLockContextType | undefined>(undefined);
@@ -44,6 +45,16 @@ export function KeyboardLockProvider({ children }: { children: ReactNode }) {
   const toggleFnHold = () => setFnHold(prev => !prev);
   const toggleWinLock = () => setWinLock(prev => !prev);
   const toggleInsert = () => setInsert(prev => !prev);
+
+  const resetLocks = () => {
+    setCapsLock(false);
+    setNumLock(false);
+    setScrollLock(false);
+    setFnLock(false);
+    setFnHold(false);
+    setWinLock(false);
+    setInsert(false);
+  };
 
   return (
     <KeyboardLockContext.Provider
@@ -69,6 +80,7 @@ export function KeyboardLockProvider({ children }: { children: ReactNode }) {
         toggleFnHold,
         toggleWinLock,
         toggleInsert,
+        resetLocks,
       }}
     >
       {children}

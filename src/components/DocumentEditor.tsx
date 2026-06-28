@@ -12,6 +12,8 @@ import {
   getSelectionFocus,
   type EditorSnapshot,
 } from "@/lib/document-editor-actions";
+import { useAppReset } from "@/contexts/AppResetContext";
+import { EMPTY_EDITOR_SNAPSHOT } from "@/lib/app-defaults";
 
 const dbg = createDebugLogger('DocumentEditor');
 
@@ -130,6 +132,7 @@ const DocumentEditor = ({
   const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { subscribe } = useKeyboardInput();
+  const { registerComponentReset } = useAppReset();
   
   // Use refs to access current state values without causing re-subscriptions
   const textRef = useRef(text);
@@ -225,6 +228,36 @@ const DocumentEditor = ({
       width,
     });
   };
+
+  const resetDocument = useCallback(() => {
+    textRef.current = '';
+    intendedCursorPosRef.current = 0;
+    selectionAnchorRef.current = 0;
+    findQueryRef.current = null;
+    historyRef.current = [{ ...EMPTY_EDITOR_SNAPSHOT }];
+    historyIndexRef.current = 0;
+
+    setText('');
+    setCursorPos(0);
+    setSelectionRange({ start: 0, end: 0 });
+    setSelectionRects([]);
+    setLastKeyPress(null);
+    setIsTyping(false);
+    setCaretMode('insert');
+    if (typingTimerRef.current) {
+      clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = null;
+    }
+
+    setTimeout(() => {
+      if (!textareaRef.current) return;
+      textareaRef.current.selectionStart = 0;
+      textareaRef.current.selectionEnd = 0;
+      updateEditorVisuals(0);
+    }, 0);
+  }, []);
+
+  useEffect(() => registerComponentReset(resetDocument), [registerComponentReset, resetDocument]);
 
   const handleMouseDown = () => {
     if (textareaRef.current) {

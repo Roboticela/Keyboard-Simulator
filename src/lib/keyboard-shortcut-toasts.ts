@@ -220,6 +220,110 @@ const MODIFIER_BUTTON_IDS = new Set([
   'fn',
 ]);
 
+export const KEY_PRESS_TOAST_EVENT = 'pc-fkey-info';
+
+const SPECIAL_KEY_TOAST_INFO: Record<string, { title: string; description: string }> = {
+  esc: { title: 'Esc', description: 'Cancel current action or close dialog' },
+  tab: { title: 'Tab', description: 'Indent text in editors (often 2–4 spaces) or move focus to the next field in forms' },
+  f1: { title: 'F1', description: 'Open Help in the active app' },
+  f2: { title: 'F2', description: 'Rename the selected file or item' },
+  f3: { title: 'F3', description: 'Open Find / Search in the active window' },
+  f4: { title: 'F4', description: 'Show address bar list (Explorer) — Alt+F4 closes window' },
+  f5: { title: 'F5', description: 'Refresh / Reload the current page or view' },
+  f6: { title: 'F6', description: 'Move cursor to address bar (browser / Explorer)' },
+  f7: { title: 'F7', description: 'Spell check in Word, Outlook and other Office apps' },
+  f8: { title: 'F8', description: 'Enter Windows Recovery Environment (hold at startup)' },
+  f9: { title: 'F9', description: 'Send & Receive in Outlook; recalculate in Excel' },
+  f10: { title: 'F10', description: 'Activate the menu bar — Shift+F10 opens context menu' },
+  f11: { title: 'F11', description: 'Toggle full-screen mode in browsers and File Explorer' },
+  f12: { title: 'F12', description: 'Open Browser DevTools; Save As in Office apps' },
+  prtsc: { title: 'PrtSc', description: 'Capture screenshot to clipboard — Win+PrtSc saves to Pictures/Screenshots' },
+  capslock: { title: 'Caps Lock', description: 'Lock all letters to uppercase — press again to turn off' },
+  numlock: { title: 'Num Lock', description: 'Toggle numpad between number input and navigation keys' },
+  'scroll-lock': { title: 'Scroll Lock', description: 'Freeze row/column scrolling in spreadsheets — rarely used in modern apps' },
+  scrolllock: { title: 'Scroll Lock', description: 'Freeze row/column scrolling in spreadsheets — rarely used in modern apps' },
+  'pause-break': { title: 'Pause / Break', description: 'Pause a running process; Break sends an interrupt signal to the terminal' },
+  pause: { title: 'Pause / Break', description: 'Pause a running process; Break sends an interrupt signal to the terminal' },
+  break: { title: 'Pause / Break', description: 'Pause a running process; Break sends an interrupt signal to the terminal' },
+  menu: { title: 'Menu', description: 'Open the right-click context menu for the selected item (same as right-click)' },
+  insert: { title: 'Insert', description: 'Toggle Insert vs Overwrite mode when typing in text editors' },
+  ins: { title: 'Insert', description: 'Toggle Insert vs Overwrite mode when typing in text editors' },
+  home: { title: 'Home', description: 'Jump to the start of the line — Ctrl+Home goes to the top of the document' },
+  end: { title: 'End', description: 'Jump to the end of the line — Ctrl+End goes to the bottom of the document' },
+  pgup: { title: 'Pg Up', description: 'Scroll up one screen or move the cursor up one page' },
+  pgdn: { title: 'Pg Down', description: 'Scroll down one screen or move the cursor down one page' },
+  delete: { title: 'Delete', description: 'Remove the character after the cursor or delete the selected item' },
+  del: { title: 'Delete', description: 'Remove the character after the cursor or delete the selected item' },
+  'arrow-up': { title: '↑', description: 'Move the cursor or selection up one line' },
+  'arrow-down': { title: '↓', description: 'Move the cursor or selection down one line' },
+  'arrow-left': { title: '←', description: 'Move the cursor or selection left one character' },
+  'arrow-right': { title: '→', description: 'Move the cursor or selection right one character' },
+};
+
+const RESOLVED_PRIMARY_TO_TOAST_KEY: Record<string, string> = {
+  Home: 'home',
+  End: 'end',
+  PageUp: 'pgup',
+  PageDown: 'pgdn',
+  Insert: 'insert',
+  Delete: 'delete',
+  ArrowUp: 'arrow-up',
+  ArrowDown: 'arrow-down',
+  ArrowLeft: 'arrow-left',
+  ArrowRight: 'arrow-right',
+};
+
+export function getKeyToastInfo(
+  buttonName: string,
+  buttonConfig: Pick<KeyboardButton, 'id' | 'primary' | 'secondary'> | null | undefined,
+  numLock: boolean,
+  winLock: boolean,
+): { title: string; description: string } | undefined {
+  let lookupKey = buttonName;
+  if (buttonConfig) {
+    const { primary } = resolveKeyFromConfig(buttonConfig, numLock);
+    if (primary === 'Meta') {
+      if (winLock) return undefined;
+      return { title: 'Win', description: 'Open Start menu' };
+    }
+    lookupKey = RESOLVED_PRIMARY_TO_TOAST_KEY[primary] ?? buttonName;
+  }
+  return SPECIAL_KEY_TOAST_INFO[lookupKey];
+}
+
+function toKeyModifiers(modifiers: Partial<KeyModifiers>): KeyModifiers {
+  return {
+    shift: !!modifiers.shift,
+    ctrl: !!modifiers.ctrl,
+    alt: !!modifiers.alt,
+    meta: !!modifiers.meta,
+    fn: !!modifiers.fn,
+  };
+}
+
+/** Show a key-info or shortcut toast for a virtual or physical key press. */
+export function dispatchKeyPressToast(
+  buttonId: string,
+  buttonConfig: Pick<KeyboardButton, 'id' | 'primary' | 'secondary'> | null | undefined,
+  modifiers: Partial<KeyModifiers>,
+  numLock: boolean,
+  winLock: boolean,
+): void {
+  const mod = toKeyModifiers(modifiers);
+  const noModifiers = !mod.shift && !mod.ctrl && !mod.alt && !mod.meta && !mod.fn;
+
+  let info: { title: string; description: string } | undefined;
+  if (noModifiers) {
+    info = getKeyToastInfo(buttonId, buttonConfig, numLock, winLock);
+  } else if (buttonConfig && shouldShowShortcutToast(mod, buttonConfig, numLock)) {
+    info = getShortcutToastInfo(mod, buttonConfig, numLock);
+  }
+
+  if (info) {
+    window.dispatchEvent(new CustomEvent(KEY_PRESS_TOAST_EVENT, { detail: info }));
+  }
+}
+
 export function shouldShowShortcutToast(
   modifiers: KeyModifiers,
   buttonConfig: Pick<KeyboardButton, 'id' | 'primary' | 'secondary'>,

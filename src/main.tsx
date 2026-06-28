@@ -18,6 +18,7 @@ import { KeyboardLockProvider } from '@/contexts/KeyboardLockContext'
 import { KeyboardInputProvider } from '@/contexts/KeyboardInputContext'
 import { FnFunctionProvider } from '@/contexts/FnFunctionContext'
 import { SystemStateProvider } from '@/contexts/SystemStateContext'
+import { AppResetProvider } from '@/contexts/AppResetContext'
 import { ThemeScript } from '@/components/ThemeScript'
 
 createRoot(document.getElementById('root')!).render(
@@ -38,7 +39,9 @@ createRoot(document.getElementById('root')!).render(
                             <KeyboardInputProvider>
                               <FnFunctionProvider>
                                 <SystemStateProvider>
-                                  <App />
+                                  <AppResetProvider>
+                                    <App />
+                                  </AppResetProvider>
                                 </SystemStateProvider>
                               </FnFunctionProvider>
                             </KeyboardInputProvider>

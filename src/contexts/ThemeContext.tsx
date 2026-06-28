@@ -9,6 +9,8 @@ interface ThemeContextType {
   setTheme: (theme: ThemeName) => void;
   glowEnabled: boolean;
   toggleGlow: () => void;
+  setGlowEnabled: (enabled: boolean) => void;
+  resetTheme: (theme?: ThemeName) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -42,8 +44,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setGlowEnabled((prev) => !prev);
   };
 
+  const resetTheme = (themeName: ThemeName = "dark") => {
+    setGlowEnabled(false);
+    setThemeState(themeName);
+    localStorage.setItem("theme", themeName);
+    applyTheme(themeName);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, glowEnabled, toggleGlow }}>
+    <ThemeContext.Provider value={{ theme, setTheme, glowEnabled, toggleGlow, setGlowEnabled, resetTheme }}>
       {children}
     </ThemeContext.Provider>
   );

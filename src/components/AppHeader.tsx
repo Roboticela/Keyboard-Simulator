@@ -9,6 +9,7 @@ import { useKeyboardView } from "@/contexts/KeyboardViewContext";
 import { useKeyboardSync } from "@/contexts/KeyboardSyncContext";
 import { useKeyboardType } from "@/contexts/KeyboardTypeContext";
 import { useFnShortcut } from "@/contexts/FnShortcutContext";
+import { useAppReset } from "@/contexts/AppResetContext";
 import StoryModal from "@/components/StoryModal";
 import AboutModal from "@/components/AboutModal";
 import LicenseModal from "@/components/LicenseModal";
@@ -66,12 +67,12 @@ const themes: { name: ThemeName; label: string; colors: string }[] = [
 const ROBOTICELA_SITE_URL = "https://roboticela.com";
 
 const keyboards = [
+  { value: "pc", label: "PC (Full-size)", keyboardType: "pc" as const },
   { value: "asus-ux370uar", label: "Asus UX370UAR", keyboardType: "asus-ux370uar" as const },
   { value: "dell-latitude-5300-2-in-1", label: "Dell Latitude 5300", keyboardType: "dell-latitude-5300-2-in-1" as const },
   { value: "dell-latitude-e7270", label: "Dell Latitude E7270", keyboardType: "dell-latitude-e7270" as const },
   { value: "hp-elitebook-820-g4", label: "HP EliteBook 820 G4", keyboardType: "hp-elitebook-820-g4" as const },
   { value: "toshiba-portege-x30-e", label: "Toshiba Portege X30 E", keyboardType: "toshiba-portege-x30-e" as const },
-  { value: "pc", label: "PC (Full-size)", keyboardType: "pc" as const },
 ];
 
 // Helper function to open links in both web and Tauri environments
@@ -136,6 +137,7 @@ export default function AppHeader() {
   const { mouseEnabled, setMouseEnabled } = useMouse();
   const { arrowEnabled, setArrowEnabled } = useArrow();
   const { resetView } = useKeyboardView();
+  const { resetAll: resetApp } = useAppReset();
   const { keyboardSyncEnabled, setKeyboardSyncEnabled } = useKeyboardSync();
   const { keyboardType, setKeyboardType } = useKeyboardType();
   const { fnShortcutEnabled, setFnShortcutEnabled } = useFnShortcut();
@@ -143,7 +145,7 @@ export default function AppHeader() {
   const location = useLocation();
   const isOnGamesPage = location.pathname.startsWith('/games');
   
-  const currentKeyboardLabel = keyboards.find(k => k.keyboardType === keyboardType)?.label || "Asus UX370UAR";
+  const currentKeyboardLabel = keyboards.find(k => k.keyboardType === keyboardType)?.label || "PC (Full-size)";
   const [typingHandsEnabled, setTypingHandsEnabled] = useState(false);
   const [storyModalOpen, setStoryModalOpen] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
@@ -160,21 +162,9 @@ export default function AppHeader() {
 
   const currentTheme = themes.find(t => t.name === theme);
 
-  // Reset all states function
   const resetAll = () => {
-    // Reset all button states
-    setHandEnabled(false);
-    setMouseEnabled(false);
-    setArrowEnabled(false);
+    resetApp();
     setTypingHandsEnabled(false);
-    setFullscreenEnabled(false);
-    setFnShortcutEnabled(false);
-    
-    // Reset keyboard to default
-    setKeyboardType("asus-ux370uar");
-    
-    // Reset keyboard view
-    resetView();
   };
 
   const allButtons: HeaderButton[] = [

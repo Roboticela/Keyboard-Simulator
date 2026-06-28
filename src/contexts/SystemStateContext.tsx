@@ -6,6 +6,7 @@ interface SystemStateContextType {
   flightMode: boolean;
   setFlightMode: (enabled: boolean) => void;
   toggleFlightMode: () => void;
+  resetSystemState: () => void;
 }
 
 const SystemStateContext = createContext<SystemStateContextType | undefined>(undefined);
@@ -14,6 +15,7 @@ export function SystemStateProvider({ children }: { children: ReactNode }) {
   const [flightMode, setFlightMode] = useState(false);
 
   const toggleFlightMode = () => setFlightMode(prev => !prev);
+  const resetSystemState = () => setFlightMode(false);
 
   return (
     <SystemStateContext.Provider
@@ -21,6 +23,7 @@ export function SystemStateProvider({ children }: { children: ReactNode }) {
         flightMode,
         setFlightMode,
         toggleFlightMode,
+        resetSystemState,
       }}
     >
       {children}

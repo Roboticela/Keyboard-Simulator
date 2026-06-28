@@ -29,8 +29,8 @@ import { useSystemState } from '@/contexts/SystemStateContext';
 import { getKeyboardConfig } from '@/lib/keyboard-configs';
 import type { KeyboardButton } from '@/lib/keyboard-button-types';
 import {
-  getShortcutToastInfo,
-  shouldShowShortcutToast,
+  dispatchKeyPressToast,
+  KEY_PRESS_TOAST_EVENT,
 } from '@/lib/keyboard-shortcut-toasts';
 import { modifiersForKeyDisplay, isMetaKeyEvent } from '@/lib/key-display';
 
@@ -80,70 +80,6 @@ function resolveKeyFromConfig(
   }
 
   return { primary, secondary };
-}
-
-const SPECIAL_KEY_TOAST_INFO: Record<string, { title: string; description: string }> = {
-  'esc':         { title: 'Esc',          description: 'Cancel current action or close dialog' },
-  'tab':         { title: 'Tab',           description: 'Indent text in editors (often 2–4 spaces) or move focus to the next field in forms' },
-  'f1':          { title: 'F1',            description: 'Open Help in the active app' },
-  'f2':          { title: 'F2',            description: 'Rename the selected file or item' },
-  'f3':          { title: 'F3',            description: 'Open Find / Search in the active window' },
-  'f4':          { title: 'F4',            description: 'Show address bar list (Explorer) — Alt+F4 closes window' },
-  'f5':          { title: 'F5',            description: 'Refresh / Reload the current page or view' },
-  'f6':          { title: 'F6',            description: 'Move cursor to address bar (browser / Explorer)' },
-  'f7':          { title: 'F7',            description: 'Spell check in Word, Outlook and other Office apps' },
-  'f8':          { title: 'F8',            description: 'Enter Windows Recovery Environment (hold at startup)' },
-  'f9':          { title: 'F9',            description: 'Send & Receive in Outlook; recalculate in Excel' },
-  'f10':         { title: 'F10',           description: 'Activate the menu bar — Shift+F10 opens context menu' },
-  'f11':         { title: 'F11',           description: 'Toggle full-screen mode in browsers and File Explorer' },
-  'f12':         { title: 'F12',           description: 'Open Browser DevTools; Save As in Office apps' },
-  'prtsc':       { title: 'PrtSc',         description: 'Capture screenshot to clipboard — Win+PrtSc saves to Pictures/Screenshots' },
-  'capslock':    { title: 'Caps Lock',     description: 'Lock all letters to uppercase — press again to turn off' },
-  'numlock':     { title: 'Num Lock',      description: 'Toggle numpad between number input and navigation keys' },
-  'scroll-lock': { title: 'Scroll Lock',   description: 'Freeze row/column scrolling in spreadsheets — rarely used in modern apps' },
-  'pause-break': { title: 'Pause / Break', description: 'Pause a running process; Break sends an interrupt signal to the terminal' },
-  'menu':        { title: 'Menu',          description: 'Open the right-click context menu for the selected item (same as right-click)' },
-  'insert':      { title: 'Insert',        description: 'Toggle Insert vs Overwrite mode when typing in text editors' },
-  'home':        { title: 'Home',          description: 'Jump to the start of the line — Ctrl+Home goes to the top of the document' },
-  'end':         { title: 'End',           description: 'Jump to the end of the line — Ctrl+End goes to the bottom of the document' },
-  'pgup':        { title: 'Pg Up',         description: 'Scroll up one screen or move the cursor up one page' },
-  'pgdn':        { title: 'Pg Down',       description: 'Scroll down one screen or move the cursor down one page' },
-  'delete':      { title: 'Delete',        description: 'Remove the character after the cursor or delete the selected item' },
-  'arrow-up':    { title: '↑',             description: 'Move the cursor or selection up one line' },
-  'arrow-down':  { title: '↓',             description: 'Move the cursor or selection down one line' },
-  'arrow-left':  { title: '←',             description: 'Move the cursor or selection left one character' },
-  'arrow-right': { title: '→',             description: 'Move the cursor or selection right one character' },
-};
-
-const RESOLVED_PRIMARY_TO_TOAST_KEY: Record<string, string> = {
-  Home: 'home',
-  End: 'end',
-  PageUp: 'pgup',
-  PageDown: 'pgdn',
-  Insert: 'insert',
-  Delete: 'delete',
-  ArrowUp: 'arrow-up',
-  ArrowDown: 'arrow-down',
-  ArrowLeft: 'arrow-left',
-  ArrowRight: 'arrow-right',
-};
-
-function getKeyToastInfo(
-  buttonName: string,
-  buttonConfig: Pick<KeyboardButton, 'id' | 'primary' | 'secondary'> | null | undefined,
-  numLock: boolean,
-  winLock: boolean,
-): { title: string; description: string } | undefined {
-  let lookupKey = buttonName;
-  if (buttonConfig) {
-    const { primary } = resolveKeyFromConfig(buttonConfig, numLock);
-    if (primary === 'Meta') {
-      if (winLock) return undefined;
-      return { title: 'Win', description: 'Open Start menu' };
-    }
-    lookupKey = RESOLVED_PRIMARY_TO_TOAST_KEY[primary] ?? buttonName;
-  }
-  return SPECIAL_KEY_TOAST_INFO[lookupKey];
 }
 
 // Generic component to detect hover and click on all keyboard buttons using actual DOM element positions
@@ -718,22 +654,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
         // Show key info toast (single keys) or shortcut toast (modifier combos)
         {
           const modifiers = getAllModifiers();
-          const noModifiers =
-            !modifiers.shift &&
-            !modifiers.ctrl &&
-            !modifiers.alt &&
-            !modifiers.meta &&
-            !modifiers.fn;
-
-          if (noModifiers) {
-            const info = getKeyToastInfo(buttonName, buttonConfig, numLock, winLock);
-            if (info) {
-              window.dispatchEvent(new CustomEvent('pc-fkey-info', { detail: info }));
-            }
-          } else if (buttonConfig && shouldShowShortcutToast(modifiers, buttonConfig, numLock)) {
-            const info = getShortcutToastInfo(modifiers, buttonConfig, numLock);
-            window.dispatchEvent(new CustomEvent('pc-fkey-info', { detail: info }));
-          }
+          dispatchKeyPressToast(buttonName, buttonConfig, modifiers, numLock, winLock);
         }
 
         // Handle Fn key separately - it should be held like a modifier key
@@ -1397,6 +1318,7 @@ function KeyboardSyncHandler() {
     scrollLock,
     fnLock,
     fnHold,
+    winLock,
     toggleCapsLock,
     toggleNumLock,
     toggleScrollLock,
@@ -1819,6 +1741,20 @@ function KeyboardSyncHandler() {
       handleKeyPress(pressedKey, modifiersForKeyDisplay(pressedKey, pressedModifiers));
     };
 
+    const showKeyToast = (
+      buttonID: string,
+      buttonConfig: Pick<KeyboardButton, 'id' | 'primary' | 'secondary'> | null | undefined,
+      toastModifiers: {
+        shift: boolean;
+        ctrl: boolean;
+        alt: boolean;
+        meta: boolean;
+        fn: boolean;
+      },
+    ) => {
+      dispatchKeyPressToast(buttonID, buttonConfig, toastModifiers, numLock, winLock);
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key;
       const code = e.code;
@@ -1896,6 +1832,13 @@ function KeyboardSyncHandler() {
         fn: realFnKeyPressedRef.current || fnHold || fnLock,
         capsLock: capsLock,
       };
+      const toastModifiers = {
+        shift: modifiers.shift,
+        ctrl: modifiers.ctrl,
+        alt: modifiers.alt,
+        meta: modifiers.meta,
+        fn: modifiers.fn,
+      };
 
       // Check if this is a lock key before toggling
       const isLockKey = key === 'CapsLock' || key === 'NumLock' || key === 'ScrollLock';
@@ -1971,17 +1914,18 @@ function KeyboardSyncHandler() {
               }
 
               if (keyToSend !== null) {
+                showKeyToast(buttonID, buttonConfig, toastModifiers);
                 emitKeyPress(keyToSend, modifiers);
               } else {
-                // Fallback: send the primary key
+                showKeyToast(buttonID, buttonConfig, toastModifiers);
                 emitKeyPress(buttonConfig.primary, modifiers);
               }
             }
           } else if (key.length > 1 || isMetaKeyEvent(key, code)) {
-            // Mapped button id missing from config — still forward the browser key
+            showKeyToast(buttonID, null, toastModifiers);
             emitKeyPress(isMetaKeyEvent(key, code) ? 'Meta' : key, modifiers);
           } else if (isPrintScreen) {
-            // If Print Screen button config not found, still send the key
+            showKeyToast('prtsc', null, toastModifiers);
             emitKeyPress('PrintScreen', modifiers);
           }
         }
@@ -1992,6 +1936,9 @@ function KeyboardSyncHandler() {
           applyClickEffect(buttonElement);
           pressedButtonsRef.current.set(keyId, buttonElement);
         }
+        const keyboardConfig = getKeyboardConfig(keyboardType);
+        const winConfig = keyboardConfig?.find(btn => btn.id === sideId) ?? null;
+        showKeyToast(sideId, winConfig, toastModifiers);
         emitKeyPress('Meta', modifiers);
       }
     };
@@ -2327,8 +2274,8 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
       },
     };
 
-    // Get settings for current keyboard type, fallback to asus-ux370uar if not found
-    const currentKeyboardSettings = keyboardSettings[keyboardType] || keyboardSettings['asus-ux370uar'];
+    // Get settings for current keyboard type, fallback to pc if not found
+    const currentKeyboardSettings = keyboardSettings[keyboardType] || keyboardSettings['pc'];
     const modeSettings = fullscreenEnabled ? currentKeyboardSettings.fullscreen : currentKeyboardSettings.normal;
 
     // Determine screen size breakpoint
@@ -2681,7 +2628,7 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
 
     const unregister = registerResetCallback(resetView);
     return unregister;
-  }, [registerResetCallback, camera, css3DObjectRef, fullscreenEnabled]);
+  }, [registerResetCallback, camera, css3DObjectRef, fullscreenEnabled, keyboardType]);
 
   useEffect(() => {
     // Reset dragging/rotating states when handEnabled changes
@@ -3001,9 +2948,9 @@ export default function Keyboard() {
       if (fKeyToastTimerRef.current) clearTimeout(fKeyToastTimerRef.current);
       fKeyToastTimerRef.current = setTimeout(() => setFKeyToast(null), 3000);
     };
-    window.addEventListener('pc-fkey-info', handler);
+    window.addEventListener(KEY_PRESS_TOAST_EVENT, handler);
     return () => {
-      window.removeEventListener('pc-fkey-info', handler);
+      window.removeEventListener(KEY_PRESS_TOAST_EVENT, handler);
       if (fKeyToastTimerRef.current) clearTimeout(fKeyToastTimerRef.current);
     };
   }, []);

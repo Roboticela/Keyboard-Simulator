@@ -83,7 +83,7 @@ const sections = [
     icon: RefreshCw,
     title: "Reset All",
     description:
-      "Reset All restores every toggle (Hand, Mouse, Arrow, Sync, Fullscreen, Fn Shortcut) to its default off state and switches back to the default keyboard model.",
+      "Reset restores the document, sidebar controls, keyboard locks, theme, and header toggles to their defaults. It switches back to the PC keyboard and resets the 3D view to its default position.",
   },
   {
     icon: Gamepad2,

@@ -38,3 +38,15 @@ export function isMetaKeyEvent(key: string, code: string): boolean {
     code === 'MetaRight'
   );
 }
+
+const NAV_ARROW_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+
+/** When Arrow mode is on, plain arrow keys should reach the browser (scroll, native focus nav). */
+export function shouldPropagateNavArrowToBrowser(
+  key: string,
+  arrowEnabled: boolean,
+  modifiers: Partial<KeyModifiers>,
+): boolean {
+  if (!arrowEnabled || !NAV_ARROW_KEYS.has(key)) return false;
+  return !modifiers.ctrl && !modifiers.meta && !modifiers.alt && !modifiers.fn;
+}

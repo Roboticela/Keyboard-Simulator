@@ -21,6 +21,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useFullscreen } from '@/contexts/FullscreenContext';
 import { useKeyboardView } from '@/contexts/KeyboardViewContext';
 import { useKeyboardSync } from '@/contexts/KeyboardSyncContext';
+import { useArrow } from '@/contexts/ArrowContext';
 import { useKeyboardType } from '@/contexts/KeyboardTypeContext';
 import { useKeyboardLock } from '@/contexts/KeyboardLockContext';
 import { useKeyboardInput } from '@/contexts/KeyboardInputContext';
@@ -32,7 +33,7 @@ import {
   dispatchKeyPressToast,
   KEY_PRESS_TOAST_EVENT,
 } from '@/lib/keyboard-shortcut-toasts';
-import { modifiersForKeyDisplay, isMetaKeyEvent } from '@/lib/key-display';
+import { modifiersForKeyDisplay, isMetaKeyEvent, shouldPropagateNavArrowToBrowser } from '@/lib/key-display';
 
 const NUMPAD_ALWAYS_PRIMARY_IDS = new Set([
   'numlock',
@@ -1310,6 +1311,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
 // Component to sync real keyboard with virtual keyboard when keyboard sync is enabled
 function KeyboardSyncHandler() {
   const { keyboardSyncEnabled } = useKeyboardSync();
+  const { arrowEnabled } = useArrow();
   const { keyboardType } = useKeyboardType();
   const { handleKeyPress } = useKeyboardInput();
   const {
@@ -1760,6 +1762,14 @@ function KeyboardSyncHandler() {
       const code = e.code;
       const keyId = `${key}-${code}`;
 
+      const fnActive = realFnKeyPressedRef.current || fnHold || fnLock;
+      const propagateNavArrow = shouldPropagateNavArrowToBrowser(key, arrowEnabled, {
+        ctrl: e.ctrlKey,
+        meta: e.metaKey,
+        alt: e.altKey,
+        fn: fnActive,
+      });
+
       // Special handling for Print Screen - Windows captures this for screenshots
       // Check multiple variations of Print Screen key
       const isPrintScreen = 
@@ -1771,16 +1781,15 @@ function KeyboardSyncHandler() {
         (key.length === 0 && code.includes('Print')); // Some browsers don't set key for Print Screen
       
       // For Print Screen, don't prevent default - let Windows handle it
-      // but still capture the event for our virtual keyboard
-      if (!isPrintScreen) {
+      // When Arrow mode is on, let plain arrow keys scroll / use native browser behavior
+      if (!isPrintScreen && !propagateNavArrow) {
         e.preventDefault();
         e.stopPropagation();
       }
 
       // OS-level key repeat: the browser fires keydown with e.repeat=true while a key is held.
-      // Forward these to handleKeyPress (without re-running visual/setup code) so the
-      // physical keyboard hold behaves like the virtual keyboard hold.
       if (e.repeat) {
+        if (propagateNavArrow) return;
         if (!nonRepeatableKeys.has(key) && pressedKeysRef.current.has(keyId)) {
           const rModifiers = {
             shift: e.shiftKey,
@@ -1915,18 +1924,26 @@ function KeyboardSyncHandler() {
 
               if (keyToSend !== null) {
                 showKeyToast(buttonID, buttonConfig, toastModifiers);
-                emitKeyPress(keyToSend, modifiers);
+                if (!propagateNavArrow) {
+                  emitKeyPress(keyToSend, modifiers);
+                }
               } else {
                 showKeyToast(buttonID, buttonConfig, toastModifiers);
-                emitKeyPress(buttonConfig.primary, modifiers);
+                if (!propagateNavArrow) {
+                  emitKeyPress(buttonConfig.primary, modifiers);
+                }
               }
             }
           } else if (key.length > 1 || isMetaKeyEvent(key, code)) {
             showKeyToast(buttonID, null, toastModifiers);
-            emitKeyPress(isMetaKeyEvent(key, code) ? 'Meta' : key, modifiers);
+            if (!propagateNavArrow) {
+              emitKeyPress(isMetaKeyEvent(key, code) ? 'Meta' : key, modifiers);
+            }
           } else if (isPrintScreen) {
             showKeyToast('prtsc', null, toastModifiers);
-            emitKeyPress('PrintScreen', modifiers);
+            if (!propagateNavArrow) {
+              emitKeyPress('PrintScreen', modifiers);
+            }
           }
         }
       } else if (isMetaKeyEvent(key, code)) {
@@ -1939,7 +1956,9 @@ function KeyboardSyncHandler() {
         const keyboardConfig = getKeyboardConfig(keyboardType);
         const winConfig = keyboardConfig?.find(btn => btn.id === sideId) ?? null;
         showKeyToast(sideId, winConfig, toastModifiers);
-        emitKeyPress('Meta', modifiers);
+        if (!propagateNavArrow) {
+          emitKeyPress('Meta', modifiers);
+        }
       }
     };
 
@@ -1947,6 +1966,14 @@ function KeyboardSyncHandler() {
       const key = e.key;
       const code = e.code;
       const keyId = `${key}-${code}`;
+
+      const fnActive = realFnKeyPressedRef.current || fnHold || fnLock;
+      const propagateNavArrow = shouldPropagateNavArrowToBrowser(key, arrowEnabled, {
+        ctrl: e.ctrlKey,
+        meta: e.metaKey,
+        alt: e.altKey,
+        fn: fnActive,
+      });
 
       // Special handling for Print Screen - Windows captures this for screenshots
       // Check multiple variations of Print Screen key
@@ -1959,7 +1986,7 @@ function KeyboardSyncHandler() {
         (key.length === 0 && code.includes('Print')); // Some browsers don't set key for Print Screen
       
       // For Print Screen, don't prevent default - let Windows handle it
-      if (!isPrintScreen) {
+      if (!isPrintScreen && !propagateNavArrow) {
         e.preventDefault();
         e.stopPropagation();
       }
@@ -2117,7 +2144,7 @@ function KeyboardSyncHandler() {
       pressedButtonsRef.current.clear();
       pressedKeysRef.current.clear();
     };
-  }, [keyboardSyncEnabled, keyboardType, handleKeyPress, capsLock, numLock, scrollLock, fnLock, fnHold, toggleCapsLock, toggleNumLock, toggleScrollLock, handleFnFunction, flightMode, theme]);
+  }, [keyboardSyncEnabled, keyboardType, handleKeyPress, capsLock, numLock, scrollLock, fnLock, fnHold, winLock, arrowEnabled, toggleCapsLock, toggleNumLock, toggleScrollLock, handleFnFunction, flightMode, theme]);
 
   return null;
 }

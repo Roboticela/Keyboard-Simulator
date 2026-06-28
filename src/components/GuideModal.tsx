@@ -71,7 +71,7 @@ const sections = [
     icon: ArrowUpDown,
     title: "Arrow Keys",
     description:
-      "The Arrow toggle activates a directional indicator overlay that visualises which arrow key is currently pressed — helpful when demonstrating navigation shortcuts.",
+      "The Arrow toggle lets plain arrow keys pass through to the browser so the page can scroll and focused fields use native navigation, while the virtual keyboard still highlights the pressed arrow key.",
   },
   {
     icon: RotateCcw,

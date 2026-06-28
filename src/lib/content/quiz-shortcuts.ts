@@ -15,7 +15,7 @@ function entry(platform: Platform, shortcut: string, correct: string, distractor
 }
 
 // ── Windows ─────────────────────────────────────────────────────────────────
-const WINDOWS: ShortcutEntry[] = [
+export const windowsShortcutEntries: ShortcutEntry[] = [
   entry('Windows', 'Ctrl + C', 'Copy', ['Cut', 'Paste', 'Close', 'Undo']),
   entry('Windows', 'Ctrl + V', 'Paste', ['Copy', 'Save', 'Print', 'Find']),
   entry('Windows', 'Ctrl + X', 'Cut', ['Copy', 'Delete', 'Select All', 'Redo']),
@@ -308,7 +308,7 @@ const UNIVERSAL: ShortcutEntry[] = [
   entry('Universal', 'F11', 'Toggle fullscreen (most browsers)', ['Refresh', 'Find', 'Developer tools', 'Format']),
 ];
 
-const ALL_ENTRIES: ShortcutEntry[] = [...WINDOWS, ...MACOS, ...LINUX, ...UNIVERSAL];
+const ALL_ENTRIES: ShortcutEntry[] = [...windowsShortcutEntries, ...MACOS, ...LINUX, ...UNIVERSAL];
 
 function toQuestion(entry: ShortcutEntry, reverse = false): ShortcutQuestion {
   if (!reverse) {

@@ -28,6 +28,10 @@ import { useFnFunction } from '@/contexts/FnFunctionContext';
 import { useSystemState } from '@/contexts/SystemStateContext';
 import { getKeyboardConfig } from '@/lib/keyboard-configs';
 import type { KeyboardButton } from '@/lib/keyboard-button-types';
+import {
+  getShortcutToastInfo,
+  shouldShowShortcutToast,
+} from '@/lib/keyboard-shortcut-toasts';
 
 const NUMPAD_ALWAYS_PRIMARY_IDS = new Set([
   'numlock',
@@ -704,15 +708,24 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
           console.log(`Button "${buttonName}" clicked (no keyboard config found for type: ${keyboardType})`);
         }
 
-        // Show key info toast (only when pressed alone, no modifiers)
+        // Show key info toast (single keys) or shortcut toast (modifier combos)
         {
           const modifiers = getAllModifiers();
-          const noModifiers = !modifiers.shift && !modifiers.ctrl && !modifiers.alt && !modifiers.meta && !modifiers.fn;
+          const noModifiers =
+            !modifiers.shift &&
+            !modifiers.ctrl &&
+            !modifiers.alt &&
+            !modifiers.meta &&
+            !modifiers.fn;
+
           if (noModifiers) {
             const info = getKeyToastInfo(buttonName, buttonConfig, numLock);
             if (info) {
               window.dispatchEvent(new CustomEvent('pc-fkey-info', { detail: info }));
             }
+          } else if (buttonConfig && shouldShowShortcutToast(modifiers, buttonConfig, numLock)) {
+            const info = getShortcutToastInfo(modifiers, buttonConfig, numLock);
+            window.dispatchEvent(new CustomEvent('pc-fkey-info', { detail: info }));
           }
         }
 
@@ -3011,13 +3024,17 @@ export default function Keyboard() {
             className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-start gap-3 px-4 py-3 rounded-xl border border-border/60 bg-card/90 backdrop-blur-md shadow-xl w-max max-w-[min(24rem,calc(100%-2rem))] pointer-events-none"
           >
             <div className="flex items-center justify-center min-h-9 min-w-9 px-2.5 py-1.5 rounded-lg bg-primary/15 border border-primary/30 flex-shrink-0 self-start">
-              <span className="text-xs font-bold text-primary font-mono text-center leading-tight whitespace-nowrap">
+              <span className={`text-xs font-bold text-primary font-mono text-center leading-tight ${fKeyToast.title.includes(' + ') ? 'whitespace-normal' : 'whitespace-nowrap'}`}>
                 {fKeyToast.title}
               </span>
             </div>
             <div className="flex flex-col gap-0.5 min-w-0 flex-1">
               <span className="text-xs font-semibold text-foreground leading-tight">
-                {fKeyToast.title === 'Esc' ? 'Escape Key' : `${fKeyToast.title} Key`}
+                {fKeyToast.title.includes(' + ')
+                  ? 'Keyboard shortcut'
+                  : fKeyToast.title === 'Esc'
+                    ? 'Escape Key'
+                    : `${fKeyToast.title} Key`}
               </span>
               <span className="text-xs text-muted-foreground leading-snug break-words">{fKeyToast.description}</span>
             </div>

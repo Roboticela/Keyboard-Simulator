@@ -9,6 +9,7 @@ import { useKeyboardView } from "@/contexts/KeyboardViewContext";
 import { useKeyboardSync } from "@/contexts/KeyboardSyncContext";
 import { useKeyboardType } from "@/contexts/KeyboardTypeContext";
 import { useFnShortcut } from "@/contexts/FnShortcutContext";
+import { useTypingHands } from "@/contexts/TypingHandsContext";
 import { useAppReset } from "@/contexts/AppResetContext";
 import StoryModal from "@/components/StoryModal";
 import AboutModal from "@/components/AboutModal";
@@ -142,12 +143,12 @@ export default function AppHeader() {
   const { keyboardSyncEnabled, setKeyboardSyncEnabled } = useKeyboardSync();
   const { keyboardType, setKeyboardType } = useKeyboardType();
   const { fnShortcutEnabled, setFnShortcutEnabled } = useFnShortcut();
+  const { typingHandsEnabled, setTypingHandsEnabled } = useTypingHands();
   const navigate = useNavigate();
   const location = useLocation();
   const isOnGamesPage = location.pathname.startsWith('/games');
   
   const currentKeyboardLabel = keyboards.find(k => k.keyboardType === keyboardType)?.label || "PC (Full-size)";
-  const [typingHandsEnabled, setTypingHandsEnabled] = useState(false);
   const [storyModalOpen, setStoryModalOpen] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
   const [licenseModalOpen, setLicenseModalOpen] = useState(false);
@@ -165,7 +166,6 @@ export default function AppHeader() {
 
   const resetAll = () => {
     resetApp();
-    setTypingHandsEnabled(false);
   };
 
   const allButtons: HeaderButton[] = [

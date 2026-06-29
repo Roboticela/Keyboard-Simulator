@@ -2208,7 +2208,7 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
   const { scene, camera, size, gl } = useThree();
   const { handEnabled } = useHand();
   const { fullscreenEnabled } = useFullscreen();
-  const { registerResetCallback } = useKeyboardView();
+  const { registerResetCallback, registerViewHandlers, notifyViewChanged } = useKeyboardView();
   const { keyboardType } = useKeyboardType();
   const css3DObjectRef = useRef<CSS3DObject | null>(null);
   const rootRef = useRef<any>(null);
@@ -2225,6 +2225,16 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
   const readyFrameCountRef = useRef(0);
   const onKeyboardReadyRef = useRef(onKeyboardReady);
   const orbitControlsRef = useRef<React.ComponentRef<typeof OrbitControls>>(null);
+  const scheduleViewSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleViewSave = () => {
+    if (scheduleViewSaveRef.current) {
+      clearTimeout(scheduleViewSaveRef.current);
+    }
+    scheduleViewSaveRef.current = setTimeout(() => {
+      notifyViewChanged();
+    }, 300);
+  };
   onKeyboardReadyRef.current = onKeyboardReady;
 
   // Get scale and camera position based on screen width and keyboard type
@@ -2491,6 +2501,7 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
         if (positionChanged && lastCameraPositionRef.current) {
           // Camera position changed - OrbitControls was used
           userHasModifiedViewRef.current = true;
+          scheduleViewSave();
         }
         
         lastCameraPositionRef.current = {
@@ -2696,6 +2707,93 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
   }, [registerResetCallback, camera, css3DObjectRef, fullscreenEnabled, keyboardType, handEnabled, gl]);
 
   useEffect(() => {
+    const getViewState = () => {
+      if (
+        !userHasModifiedViewRef.current ||
+        !css3DObjectRef.current ||
+        !camera ||
+        !(camera instanceof THREE.PerspectiveCamera)
+      ) {
+        return null;
+      }
+
+      const object = css3DObjectRef.current;
+      const controls = orbitControlsRef.current;
+
+      return {
+        scale: object.scale.x,
+        cameraX: camera.position.x,
+        cameraY: camera.position.y,
+        cameraZ: camera.position.z,
+        objectX: object.position.x,
+        objectY: object.position.y,
+        objectZ: object.position.z,
+        rotationX: object.rotation.x,
+        rotationY: object.rotation.y,
+        rotationZ: object.rotation.z,
+        targetX: controls?.target.x ?? 0,
+        targetY: controls?.target.y ?? 0,
+        targetZ: controls?.target.z ?? 0,
+      };
+    };
+
+    const applyViewState = (state: {
+      scale: number;
+      cameraX: number;
+      cameraY: number;
+      cameraZ: number;
+      objectX: number;
+      objectY: number;
+      objectZ: number;
+      rotationX: number;
+      rotationY: number;
+      rotationZ: number;
+      targetX: number;
+      targetY: number;
+      targetZ: number;
+    }) => {
+      if (!css3DObjectRef.current || !camera || !(camera instanceof THREE.PerspectiveCamera)) return;
+
+      userHasModifiedViewRef.current = true;
+
+      css3DObjectRef.current.scale.set(state.scale, state.scale, state.scale);
+      css3DObjectRef.current.position.set(state.objectX, state.objectY, state.objectZ);
+      css3DObjectRef.current.rotation.set(state.rotationX, state.rotationY, state.rotationZ);
+
+      camera.position.set(state.cameraX, state.cameraY, state.cameraZ);
+      camera.updateProjectionMatrix();
+
+      const controls = orbitControlsRef.current;
+      if (controls) {
+        controls.target.set(state.targetX, state.targetY, state.targetZ);
+        controls.object.position.set(state.cameraX, state.cameraY, state.cameraZ);
+        controls.object.updateProjectionMatrix();
+        controls.update();
+        controls.saveState();
+      }
+
+      lastAppliedSettingsRef.current = {
+        scale: state.scale,
+        cameraX: state.cameraX,
+        cameraY: state.cameraY,
+        cameraZ: state.cameraZ,
+        objectX: state.objectX,
+        objectY: state.objectY,
+        objectZ: state.objectZ,
+        screenWidth: window.innerWidth,
+      };
+
+      lastCameraPositionRef.current = {
+        x: state.cameraX,
+        y: state.cameraY,
+        z: state.cameraZ,
+      };
+    };
+
+    return registerViewHandlers({ getViewState, applyViewState });
+  }, [camera, registerViewHandlers]);
+
+  useEffect(() => {
     // Reset dragging/rotating states when handEnabled changes
     isDraggingRef.current = false;
     isRotatingRef.current = false;
@@ -2813,9 +2911,15 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
 
     const handleMouseUp = (e: MouseEvent) => {
       if (e.button === 0) {
+        if (isDraggingRef.current) {
+          scheduleViewSave();
+        }
         isDraggingRef.current = false;
         gl.domElement.style.cursor = 'grab';
       } else if (e.button === 2) {
+        if (isRotatingRef.current) {
+          scheduleViewSave();
+        }
         isRotatingRef.current = false;
         gl.domElement.style.cursor = 'grab';
       }
@@ -2933,6 +3037,9 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
     const handleTouchEnd = (e: TouchEvent) => {
       if (e.touches.length === 0) {
         // All touches ended
+        if (isDraggingRef.current || isRotatingRef.current) {
+          scheduleViewSave();
+        }
         isDraggingRef.current = false;
         isRotatingRef.current = false;
         touchStartRef.current = null;
@@ -3005,6 +3112,7 @@ function Keyboard3D({ css3DRendererRef, containerRef, onKeyboardReady }: { css3D
         panSpeed={0.8}
         target={[0, 0, 0]}
         autoRotate={false}
+        onEnd={scheduleViewSave}
       />
     </>
   );

@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFnShortcut } from "@/contexts/FnShortcutContext";
 import { useKeyboardLock } from "@/contexts/KeyboardLockContext";
 import { useFnFunction } from "@/contexts/FnFunctionContext";
 import { useSystemState } from "@/contexts/SystemStateContext";
-import { useAppReset } from "@/contexts/AppResetContext";
-import { STATUS_CONTROLS_DEFAULTS } from "@/lib/app-defaults";
+import { useStatusControls } from "@/contexts/StatusControlsContext";
 import {
   Keyboard,
   Lock,
@@ -83,7 +82,6 @@ const LEDIndicator = ({ isActive, label, icon, onClick, compact = false }: LEDIn
   );
 };
 
-type DisplayMode = "pc-only" | "duplicate" | "extend";
 
 interface ControlBarProps {
   label: string;
@@ -192,7 +190,6 @@ const ControlBar = ({ label, icon, value, onChange }: ControlBarProps) => {
 
 export default function StatusControls() {
   const { fnShortcutEnabled } = useFnShortcut();
-  const { registerComponentReset } = useAppReset();
   const {
     capsLock,
     numLock,
@@ -211,37 +208,33 @@ export default function StatusControls() {
   } = useKeyboardLock();
   const { subscribe } = useFnFunction();
   const { flightMode, toggleFlightMode } = useSystemState();
-  const [touchpad, setTouchpad] = useState(STATUS_CONTROLS_DEFAULTS.touchpad);
-  const [sleep, setSleep] = useState(STATUS_CONTROLS_DEFAULTS.sleep);
-  const [lock, setLock] = useState(STATUS_CONTROLS_DEFAULTS.lock);
+  const {
+    touchpad,
+    setTouchpad,
+    sleep,
+    setSleep,
+    lock,
+    setLock,
+    displayMode,
+    setDisplayMode,
+    powerSaving,
+    setPowerSaving,
+    volume,
+    setVolume,
+    brightness,
+    setBrightness,
+    keyboardLight,
+    setKeyboardLight,
+    wifi,
+    setWifi,
+    bluetooth,
+    setBluetooth,
+    screenOn,
+    setScreenOn,
+    mic,
+    setMic,
+  } = useStatusControls();
   const [, setScreenOff] = useState(false);
-  const [displayMode, setDisplayMode] = useState<DisplayMode>(STATUS_CONTROLS_DEFAULTS.displayMode);
-  const [powerSaving, setPowerSaving] = useState(STATUS_CONTROLS_DEFAULTS.powerSaving);
-  const [volume, setVolume] = useState(STATUS_CONTROLS_DEFAULTS.volume);
-  const [brightness, setBrightness] = useState(STATUS_CONTROLS_DEFAULTS.brightness);
-  const [keyboardLight, setKeyboardLight] = useState(STATUS_CONTROLS_DEFAULTS.keyboardLight);
-  const [wifi, setWifi] = useState(STATUS_CONTROLS_DEFAULTS.wifi);
-  const [bluetooth, setBluetooth] = useState(STATUS_CONTROLS_DEFAULTS.bluetooth);
-  const [screenOn, setScreenOn] = useState(STATUS_CONTROLS_DEFAULTS.screenOn);
-  const [mic, setMic] = useState(STATUS_CONTROLS_DEFAULTS.mic);
-
-  const resetStatusControls = useCallback(() => {
-    setTouchpad(STATUS_CONTROLS_DEFAULTS.touchpad);
-    setSleep(STATUS_CONTROLS_DEFAULTS.sleep);
-    setLock(STATUS_CONTROLS_DEFAULTS.lock);
-    setDisplayMode(STATUS_CONTROLS_DEFAULTS.displayMode);
-    setPowerSaving(STATUS_CONTROLS_DEFAULTS.powerSaving);
-    setVolume(STATUS_CONTROLS_DEFAULTS.volume);
-    setBrightness(STATUS_CONTROLS_DEFAULTS.brightness);
-    setKeyboardLight(STATUS_CONTROLS_DEFAULTS.keyboardLight);
-    setWifi(STATUS_CONTROLS_DEFAULTS.wifi);
-    setBluetooth(STATUS_CONTROLS_DEFAULTS.bluetooth);
-    setScreenOn(STATUS_CONTROLS_DEFAULTS.screenOn);
-    setMic(STATUS_CONTROLS_DEFAULTS.mic);
-    setScreenOff(false);
-  }, []);
-
-  useEffect(() => registerComponentReset(resetStatusControls), [registerComponentReset, resetStatusControls]);
 
   // Subscribe to Fn function calls from keyboard
   useEffect(() => {

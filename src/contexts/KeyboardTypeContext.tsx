@@ -1,9 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import {
   DEFAULT_KEYBOARD_TYPE,
-  VALID_KEYBOARD_TYPES,
   type KeyboardType,
 } from "@/lib/keyboard-types";
 
@@ -19,16 +18,8 @@ const KeyboardTypeContext = createContext<KeyboardTypeContextType | undefined>(u
 export function KeyboardTypeProvider({ children }: { children: ReactNode }) {
   const [keyboardType, setKeyboardTypeState] = useState<KeyboardType>(DEFAULT_KEYBOARD_TYPE);
 
-  useEffect(() => {
-    const savedKeyboardType = localStorage.getItem("keyboardType") as KeyboardType;
-    if (savedKeyboardType && VALID_KEYBOARD_TYPES.includes(savedKeyboardType)) {
-      setKeyboardTypeState(savedKeyboardType);
-    }
-  }, []);
-
   const setKeyboardType = (type: KeyboardType) => {
     setKeyboardTypeState(type);
-    localStorage.setItem("keyboardType", type);
   };
 
   return (

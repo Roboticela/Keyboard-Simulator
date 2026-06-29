@@ -19,24 +19,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeName>("dark");
   const [glowEnabled, setGlowEnabled] = useState(false);
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as ThemeName;
-    if (savedTheme) {
-      setThemeState(savedTheme);
-      applyTheme(savedTheme);
-    } else {
-      applyTheme("dark");
-    }
-  }, []);
-
   const applyTheme = (themeName: ThemeName) => {
     const root = document.documentElement;
     root.setAttribute("data-theme", themeName);
   };
 
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+
   const setTheme = (newTheme: ThemeName) => {
     setThemeState(newTheme);
-    localStorage.setItem("theme", newTheme);
     applyTheme(newTheme);
   };
 
@@ -47,7 +40,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const resetTheme = (themeName: ThemeName = "dark") => {
     setGlowEnabled(false);
     setThemeState(themeName);
-    localStorage.setItem("theme", themeName);
     applyTheme(themeName);
   };
 
@@ -65,4 +57,3 @@ export function useTheme() {
   }
   return context;
 }
-

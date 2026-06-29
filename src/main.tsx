@@ -6,6 +6,7 @@ import App from './App.tsx'
 import "./App.css"
 
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import { AppPreferencesProvider } from '@/contexts/AppPreferencesContext'
 import { HandProvider } from '@/contexts/HandContext'
 import { FullscreenProvider } from '@/contexts/FullscreenContext'
 import { MouseProvider } from '@/contexts/MouseContext'
@@ -18,7 +19,10 @@ import { KeyboardLockProvider } from '@/contexts/KeyboardLockContext'
 import { KeyboardInputProvider } from '@/contexts/KeyboardInputContext'
 import { FnFunctionProvider } from '@/contexts/FnFunctionContext'
 import { SystemStateProvider } from '@/contexts/SystemStateContext'
+import { TypingHandsProvider } from '@/contexts/TypingHandsContext'
+import { StatusControlsProvider } from '@/contexts/StatusControlsContext'
 import { AppResetProvider } from '@/contexts/AppResetContext'
+import AppPreferencesPersistence from '@/components/AppPreferencesPersistence'
 import { ThemeScript } from '@/components/ThemeScript'
 
 createRoot(document.getElementById('root')!).render(
@@ -26,35 +30,42 @@ createRoot(document.getElementById('root')!).render(
     <HelmetProvider>
       <ThemeScript />
       <ThemeProvider>
-        <BrowserRouter>
-          <HandProvider>
-            <FullscreenProvider>
-              <MouseProvider>
-                <ArrowProvider>
-                  <KeyboardViewProvider>
-                    <KeyboardSyncProvider>
-                      <KeyboardTypeProvider>
-                        <FnShortcutProvider>
-                          <KeyboardLockProvider>
-                            <KeyboardInputProvider>
-                              <FnFunctionProvider>
-                                <SystemStateProvider>
-                                  <AppResetProvider>
-                                    <App />
-                                  </AppResetProvider>
-                                </SystemStateProvider>
-                              </FnFunctionProvider>
-                            </KeyboardInputProvider>
-                          </KeyboardLockProvider>
-                        </FnShortcutProvider>
-                      </KeyboardTypeProvider>
-                    </KeyboardSyncProvider>
-                  </KeyboardViewProvider>
-                </ArrowProvider>
-              </MouseProvider>
-            </FullscreenProvider>
-          </HandProvider>
-        </BrowserRouter>
+        <AppPreferencesProvider>
+          <BrowserRouter>
+            <HandProvider>
+              <FullscreenProvider>
+                <MouseProvider>
+                  <ArrowProvider>
+                    <KeyboardViewProvider>
+                      <KeyboardSyncProvider>
+                        <KeyboardTypeProvider>
+                          <FnShortcutProvider>
+                            <KeyboardLockProvider>
+                              <KeyboardInputProvider>
+                                <FnFunctionProvider>
+                                  <SystemStateProvider>
+                                    <TypingHandsProvider>
+                                      <StatusControlsProvider>
+                                        <AppResetProvider>
+                                          <AppPreferencesPersistence />
+                                          <App />
+                                        </AppResetProvider>
+                                      </StatusControlsProvider>
+                                    </TypingHandsProvider>
+                                  </SystemStateProvider>
+                                </FnFunctionProvider>
+                              </KeyboardInputProvider>
+                            </KeyboardLockProvider>
+                          </FnShortcutProvider>
+                        </KeyboardTypeProvider>
+                      </KeyboardSyncProvider>
+                    </KeyboardViewProvider>
+                  </ArrowProvider>
+                </MouseProvider>
+              </FullscreenProvider>
+            </HandProvider>
+          </BrowserRouter>
+        </AppPreferencesProvider>
       </ThemeProvider>
     </HelmetProvider>
   </StrictMode>,

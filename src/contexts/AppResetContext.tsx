@@ -19,6 +19,9 @@ import { useFnShortcut } from '@/contexts/FnShortcutContext';
 import { useKeyboardLock } from '@/contexts/KeyboardLockContext';
 import { useSystemState } from '@/contexts/SystemStateContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTypingHands } from '@/contexts/TypingHandsContext';
+import { useStatusControls } from '@/contexts/StatusControlsContext';
+import { useAppPreferences } from '@/contexts/AppPreferencesContext';
 import {
   DEFAULT_KEYBOARD_SYNC,
   DEFAULT_KEYBOARD_TYPE,
@@ -44,6 +47,9 @@ export function AppResetProvider({ children }: { children: ReactNode }) {
   const { resetLocks } = useKeyboardLock();
   const { resetSystemState } = useSystemState();
   const { resetTheme } = useTheme();
+  const { setTypingHandsEnabled } = useTypingHands();
+  const { resetStatusControls } = useStatusControls();
+  const { resetPreferences, setHydrating } = useAppPreferences();
 
   const [componentResetCallbacks] = useState(() => new Set<() => void>());
   const componentResetCallbacksRef = useRef(componentResetCallbacks);
@@ -57,6 +63,8 @@ export function AppResetProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetAll = useCallback(() => {
+    setHydrating(true);
+
     setHandEnabled(false);
     setMouseEnabled(false);
     setKeyboardMouseEnabled(false);
@@ -64,10 +72,12 @@ export function AppResetProvider({ children }: { children: ReactNode }) {
     setFullscreenEnabled(false);
     setFnShortcutEnabled(false);
     setKeyboardSyncEnabled(DEFAULT_KEYBOARD_SYNC);
+    setTypingHandsEnabled(false);
 
     resetLocks();
     resetSystemState();
     resetTheme(DEFAULT_THEME);
+    resetStatusControls();
 
     componentResetCallbacksRef.current.forEach((callback) => callback());
 
@@ -76,8 +86,14 @@ export function AppResetProvider({ children }: { children: ReactNode }) {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => resetView());
     });
+
+    void resetPreferences().finally(() => {
+      setHydrating(false);
+    });
   }, [
     resetLocks,
+    resetPreferences,
+    resetStatusControls,
     resetSystemState,
     resetTheme,
     resetView,
@@ -85,10 +101,12 @@ export function AppResetProvider({ children }: { children: ReactNode }) {
     setFnShortcutEnabled,
     setFullscreenEnabled,
     setHandEnabled,
+    setHydrating,
     setKeyboardMouseEnabled,
     setKeyboardSyncEnabled,
     setKeyboardType,
     setMouseEnabled,
+    setTypingHandsEnabled,
   ]);
 
   return (

@@ -1,6 +1,7 @@
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
+    .plugin(tauri_plugin_store::Builder::default().build())
     // Android: system bar presentation (Cinematic, Standard, Contoured) — see `tauri-plugin-android-ui`.
     .plugin(tauri_plugin_android_ui::init(
       tauri_plugin_android_ui::AndroidUiConfig::DEFAULT,

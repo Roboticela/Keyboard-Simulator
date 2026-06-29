@@ -22,6 +22,7 @@ import { useFullscreen } from '@/contexts/FullscreenContext';
 import { useKeyboardView } from '@/contexts/KeyboardViewContext';
 import { useKeyboardSync } from '@/contexts/KeyboardSyncContext';
 import { useArrow } from '@/contexts/ArrowContext';
+import { useMouse } from '@/contexts/MouseContext';
 import { useKeyboardType } from '@/contexts/KeyboardTypeContext';
 import { useKeyboardLock } from '@/contexts/KeyboardLockContext';
 import { useKeyboardInput } from '@/contexts/KeyboardInputContext';
@@ -33,7 +34,7 @@ import {
   dispatchKeyPressToast,
   KEY_PRESS_TOAST_EVENT,
 } from '@/lib/keyboard-shortcut-toasts';
-import { modifiersForKeyDisplay, isMetaKeyEvent, shouldPropagateNavArrowToBrowser } from '@/lib/key-display';
+import { modifiersForKeyDisplay, isMetaKeyEvent, shouldPropagateNavArrowToBrowser, shouldControlVirtualMouseWithArrow } from '@/lib/key-display';
 
 const NUMPAD_ALWAYS_PRIMARY_IDS = new Set([
   'numlock',
@@ -105,6 +106,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
   const { handleKeyPress } = useKeyboardInput();
   const { handleFnFunction } = useFnFunction();
   const { flightMode } = useSystemState();
+  const { mouseEnabled, keyboardMouseEnabled, moveVirtualMouse } = useMouse();
   const buttonsRef = useRef<Map<HTMLElement, string>>(new Map());
   const hoveredButtonRef = useRef<HTMLElement | null>(null);
   const clickedButtonsRef = useRef<Set<HTMLElement>>(new Set());
@@ -916,10 +918,17 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
             let repeatFn: (() => void) | null = null;
 
             if (specialKeysForCombos.includes(primary)) {
-              // Send the special key name directly (including F keys, modifiers, and lock keys)
-              handleKeyPress(primary, modifiers);
-              const _primary = primary; const _mods = { ...modifiers };
-              repeatFn = () => handleKeyPress(_primary, _mods);
+              const dispatchKey = (key: string, mods: typeof modifiers) => {
+                if (shouldControlVirtualMouseWithArrow(key, keyboardMouseEnabled, mouseEnabled, mods)) {
+                  moveVirtualMouse(key);
+                  return;
+                }
+                handleKeyPress(key, mods);
+              };
+              dispatchKey(primary, modifiers);
+              const _primary = primary;
+              const _mods = { ...modifiers };
+              repeatFn = () => dispatchKey(_primary, _mods);
             } else if ((modifiers.ctrl || modifiers.meta || modifiers.alt) && primary.length === 1 && /[a-zA-Z]/.test(primary)) {
               // For letter keys with Ctrl/Alt/Meta modifiers (like Ctrl+A), send the lowercase key name
               // Note: Shift is handled separately in getCharacterToInsert
@@ -1028,7 +1037,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
       gl.domElement.removeEventListener('mouseup', handleMouseUp);
       gl.domElement.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [gl, css3DRendererRef, keyboardType, fnLock, fnHold, winLock, toggleFnLock, toggleFnHold, capsLock]);
+  }, [gl, css3DRendererRef, keyboardType, fnLock, fnHold, winLock, toggleFnLock, toggleFnHold, capsLock, keyboardMouseEnabled, mouseEnabled, moveVirtualMouse, handleKeyPress, handleFnFunction, numLock, toggleCapsLock, toggleNumLock, toggleScrollLock]);
 
   // Handle fnHold state - keep fn key held when fnHold is enabled
   useEffect(() => {
@@ -1312,6 +1321,7 @@ function KeyboardButtonHoverDetector({ css3DRendererRef }: { css3DRendererRef: R
 function KeyboardSyncHandler() {
   const { keyboardSyncEnabled } = useKeyboardSync();
   const { arrowEnabled } = useArrow();
+  const { mouseEnabled, keyboardMouseEnabled } = useMouse();
   const { keyboardType } = useKeyboardType();
   const { handleKeyPress } = useKeyboardInput();
   const {
@@ -1763,12 +1773,23 @@ function KeyboardSyncHandler() {
       const keyId = `${key}-${code}`;
 
       const fnActive = realFnKeyPressedRef.current || fnHold || fnLock;
-      const propagateNavArrow = shouldPropagateNavArrowToBrowser(key, arrowEnabled, {
+      const arrowModifierState = {
         ctrl: e.ctrlKey,
         meta: e.metaKey,
         alt: e.altKey,
         fn: fnActive,
-      });
+      };
+      const keyboardMouseArrow = shouldControlVirtualMouseWithArrow(
+        key,
+        keyboardMouseEnabled,
+        mouseEnabled,
+        arrowModifierState,
+      );
+      const propagateNavArrow = !keyboardMouseArrow && shouldPropagateNavArrowToBrowser(
+        key,
+        arrowEnabled,
+        arrowModifierState,
+      );
 
       // Special handling for Print Screen - Windows captures this for screenshots
       // Check multiple variations of Print Screen key
@@ -1781,7 +1802,7 @@ function KeyboardSyncHandler() {
         (key.length === 0 && code.includes('Print')); // Some browsers don't set key for Print Screen
       
       // For Print Screen, don't prevent default - let Windows handle it
-      // When Arrow mode is on, let plain arrow keys scroll / use native browser behavior
+      // When Key Scroll mode is on, let plain arrow keys scroll / use native browser behavior
       if (!isPrintScreen && !propagateNavArrow) {
         e.preventDefault();
         e.stopPropagation();
@@ -1790,6 +1811,7 @@ function KeyboardSyncHandler() {
       // OS-level key repeat: the browser fires keydown with e.repeat=true while a key is held.
       if (e.repeat) {
         if (propagateNavArrow) return;
+        if (keyboardMouseArrow) return;
         if (!nonRepeatableKeys.has(key) && pressedKeysRef.current.has(keyId)) {
           const rModifiers = {
             shift: e.shiftKey,
@@ -1924,19 +1946,19 @@ function KeyboardSyncHandler() {
 
               if (keyToSend !== null) {
                 showKeyToast(buttonID, buttonConfig, toastModifiers);
-                if (!propagateNavArrow) {
+                if (!keyboardMouseArrow && !propagateNavArrow) {
                   emitKeyPress(keyToSend, modifiers);
                 }
               } else {
                 showKeyToast(buttonID, buttonConfig, toastModifiers);
-                if (!propagateNavArrow) {
+                if (!keyboardMouseArrow && !propagateNavArrow) {
                   emitKeyPress(buttonConfig.primary, modifiers);
                 }
               }
             }
           } else if (key.length > 1 || isMetaKeyEvent(key, code)) {
             showKeyToast(buttonID, null, toastModifiers);
-            if (!propagateNavArrow) {
+            if (!keyboardMouseArrow && !propagateNavArrow) {
               emitKeyPress(isMetaKeyEvent(key, code) ? 'Meta' : key, modifiers);
             }
           } else if (isPrintScreen) {
@@ -1968,12 +1990,23 @@ function KeyboardSyncHandler() {
       const keyId = `${key}-${code}`;
 
       const fnActive = realFnKeyPressedRef.current || fnHold || fnLock;
-      const propagateNavArrow = shouldPropagateNavArrowToBrowser(key, arrowEnabled, {
+      const arrowModifierState = {
         ctrl: e.ctrlKey,
         meta: e.metaKey,
         alt: e.altKey,
         fn: fnActive,
-      });
+      };
+      const keyboardMouseArrow = shouldControlVirtualMouseWithArrow(
+        key,
+        keyboardMouseEnabled,
+        mouseEnabled,
+        arrowModifierState,
+      );
+      const propagateNavArrow = !keyboardMouseArrow && shouldPropagateNavArrowToBrowser(
+        key,
+        arrowEnabled,
+        arrowModifierState,
+      );
 
       // Special handling for Print Screen - Windows captures this for screenshots
       // Check multiple variations of Print Screen key
@@ -2144,7 +2177,7 @@ function KeyboardSyncHandler() {
       pressedButtonsRef.current.clear();
       pressedKeysRef.current.clear();
     };
-  }, [keyboardSyncEnabled, keyboardType, handleKeyPress, capsLock, numLock, scrollLock, fnLock, fnHold, winLock, arrowEnabled, toggleCapsLock, toggleNumLock, toggleScrollLock, handleFnFunction, flightMode, theme]);
+  }, [keyboardSyncEnabled, keyboardType, handleKeyPress, capsLock, numLock, scrollLock, fnLock, fnHold, winLock, arrowEnabled, keyboardMouseEnabled, mouseEnabled, toggleCapsLock, toggleNumLock, toggleScrollLock, handleFnFunction, flightMode, theme]);
 
   return null;
 }

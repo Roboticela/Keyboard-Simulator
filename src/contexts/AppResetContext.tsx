@@ -35,7 +35,7 @@ const AppResetContext = createContext<AppResetContextType | undefined>(undefined
 export function AppResetProvider({ children }: { children: ReactNode }) {
   const { setHandEnabled } = useHand();
   const { setFullscreenEnabled } = useFullscreen();
-  const { setMouseEnabled } = useMouse();
+  const { setMouseEnabled, setKeyboardMouseEnabled } = useMouse();
   const { setArrowEnabled } = useArrow();
   const { resetView } = useKeyboardView();
   const { setKeyboardSyncEnabled } = useKeyboardSync();
@@ -59,6 +59,7 @@ export function AppResetProvider({ children }: { children: ReactNode }) {
   const resetAll = useCallback(() => {
     setHandEnabled(false);
     setMouseEnabled(false);
+    setKeyboardMouseEnabled(false);
     setArrowEnabled(false);
     setFullscreenEnabled(false);
     setFnShortcutEnabled(false);
@@ -84,6 +85,7 @@ export function AppResetProvider({ children }: { children: ReactNode }) {
     setFnShortcutEnabled,
     setFullscreenEnabled,
     setHandEnabled,
+    setKeyboardMouseEnabled,
     setKeyboardSyncEnabled,
     setKeyboardType,
     setMouseEnabled,

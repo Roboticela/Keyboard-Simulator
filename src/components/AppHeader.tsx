@@ -17,10 +17,11 @@ import GuideModal from "@/components/GuideModal";
 import { 
   Keyboard, 
   Palette, 
-  MousePointer2, 
+  MousePointer2,
+  SquareMousePointer, 
   Hand, 
   Maximize, 
-  ArrowUpDown, 
+  Scroll, 
   Menu,
   ChevronDown,
   BookOpen,
@@ -134,7 +135,7 @@ export default function AppHeader() {
   const { theme, setTheme } = useTheme();
   const { handEnabled, setHandEnabled } = useHand();
   const { fullscreenEnabled, setFullscreenEnabled } = useFullscreen();
-  const { mouseEnabled, setMouseEnabled } = useMouse();
+  const { mouseEnabled, setMouseEnabled, keyboardMouseEnabled, setKeyboardMouseEnabled } = useMouse();
   const { arrowEnabled, setArrowEnabled } = useArrow();
   const { resetView } = useKeyboardView();
   const { resetAll: resetApp } = useAppReset();
@@ -314,6 +315,25 @@ export default function AppHeader() {
       ),
     },
     {
+      id: "keyboard-mouse",
+      type: "toggle",
+      label: "Key Mouse",
+      icon: <SquareMousePointer className="w-4 h-4" />,
+      component: (
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.2 }}>
+          <Button
+            variant={keyboardMouseEnabled ? "default" : "outline"}
+            size="sm"
+            onClick={() => setKeyboardMouseEnabled(!keyboardMouseEnabled)}
+            className="gap-2 rounded-xl h-10 px-4 whitespace-nowrap"
+          >
+            <SquareMousePointer className="w-4 h-4" />
+            <span className="hidden lg:inline">Key Mouse</span>
+          </Button>
+        </motion.div>
+      ),
+    },
+    {
       id: "hand",
       type: "toggle",
       label: "Hand",
@@ -352,10 +372,10 @@ export default function AppHeader() {
       ),
     },
     {
-      id: "arrow",
+      id: "key-scroll",
       type: "toggle",
-      label: "Arrow",
-      icon: <ArrowUpDown className="w-4 h-4" />,
+      label: "Key Scroll",
+      icon: <Scroll className="w-4 h-4" />,
       component: (
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.2 }}>
           <Button
@@ -364,8 +384,8 @@ export default function AppHeader() {
             onClick={() => setArrowEnabled(!arrowEnabled)}
             className="gap-2 rounded-xl h-10 px-4 whitespace-nowrap"
           >
-            <ArrowUpDown className="w-4 h-4" />
-            <span className="hidden lg:inline">Arrow</span>
+            <Scroll className="w-4 h-4" />
+            <span className="hidden lg:inline">Key Scroll</span>
           </Button>
         </motion.div>
       ),
@@ -430,7 +450,7 @@ export default function AppHeader() {
   ];
 
   const allButtonIds = useMemo(() => 
-    ["keyboard", "theme", "fn-shortcut", "typing-hands", "mouse", "hand", "fullscreen", "arrow", "keyboard-sync", "reset-view", "reset"],
+    ["keyboard", "theme", "fn-shortcut", "typing-hands", "mouse", "keyboard-mouse", "hand", "fullscreen", "key-scroll", "keyboard-sync", "reset-view", "reset"],
     []
   );
 
@@ -522,7 +542,7 @@ export default function AppHeader() {
     // Re-adjust when button states change
     const timer = setTimeout(() => adjustVisibleButtons(), 100);
     return () => clearTimeout(timer);
-  }, [mouseEnabled, handEnabled, typingHandsEnabled, fullscreenEnabled, arrowEnabled, keyboardSyncEnabled, keyboardType, fnShortcutEnabled, theme, adjustVisibleButtons]);
+  }, [mouseEnabled, keyboardMouseEnabled, handEnabled, typingHandsEnabled, fullscreenEnabled, arrowEnabled, keyboardSyncEnabled, keyboardType, fnShortcutEnabled, theme, adjustVisibleButtons]);
 
   const menuButtonItems = allButtons.filter(btn => menuButtons.includes(btn.id));
 
@@ -713,11 +733,12 @@ export default function AppHeader() {
                         <DropdownMenuItem
                           onClick={() => {
                             if (button.id === "mouse") setMouseEnabled(!mouseEnabled);
+                            else if (button.id === "keyboard-mouse") setKeyboardMouseEnabled(!keyboardMouseEnabled);
                             else if (button.id === "hand") setHandEnabled(!handEnabled);
                             else if (button.id === "typing-hands") setTypingHandsEnabled(!typingHandsEnabled);
                             else if (button.id === "fn-shortcut") setFnShortcutEnabled(!fnShortcutEnabled);
                             else if (button.id === "fullscreen") setFullscreenEnabled(!fullscreenEnabled);
-                            else if (button.id === "arrow") setArrowEnabled(!arrowEnabled);
+                            else if (button.id === "key-scroll") setArrowEnabled(!arrowEnabled);
                             else if (button.id === "keyboard-sync") setKeyboardSyncEnabled(!keyboardSyncEnabled);
                             else if (button.id === "reset-view") resetView();
                             else if (button.id === "reset") resetAll();
@@ -727,11 +748,12 @@ export default function AppHeader() {
                           {button.icon}
                           <span>{button.label}</span>
                           {(button.id === "mouse" && mouseEnabled) ||
+                           (button.id === "keyboard-mouse" && keyboardMouseEnabled) ||
                            (button.id === "hand" && handEnabled) ||
                            (button.id === "typing-hands" && typingHandsEnabled) ||
                            (button.id === "fn-shortcut" && fnShortcutEnabled) ||
                            (button.id === "fullscreen" && fullscreenEnabled) ||
-                           (button.id === "arrow" && arrowEnabled) ||
+                           (button.id === "key-scroll" && arrowEnabled) ||
                            (button.id === "keyboard-sync" && keyboardSyncEnabled) ? (
                             <span className="ml-auto text-primary">✓</span>
                           ) : null}

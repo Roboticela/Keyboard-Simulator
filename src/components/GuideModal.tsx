@@ -9,8 +9,9 @@ import {
   Palette,
   Maximize,
   MousePointer2,
+  SquareMousePointer,
   Hand,
-  ArrowUpDown,
+  Scroll,
   Link,
   RotateCcw,
   RefreshCw,
@@ -65,13 +66,19 @@ const sections = [
     icon: MousePointer2,
     title: "Mouse Cursor",
     description:
-      "Enable Mouse to display a virtual cursor on the keyboard. The cursor follows your real mouse movements projected onto the 3D surface, giving a realistic pointer-over-keyboard visual.",
+      "Enable Mouse to show a virtual pointer inside the document editor. The real cursor is hidden in that panel so only the virtual pointer is visible, clamped to the document boundaries.",
   },
   {
-    icon: ArrowUpDown,
-    title: "Arrow Keys",
+    icon: SquareMousePointer,
+    title: "Key Mouse",
     description:
-      "The Arrow toggle lets plain arrow keys pass through to the browser so the page can scroll and focused fields use native navigation, while the virtual keyboard still highlights the pressed arrow key.",
+      "Key Mouse turns on the virtual cursor (and Mouse mode) and moves it with the arrow keys instead of your physical mouse. Plain arrows on the physical or virtual keyboard nudge the pointer inside the document editor; modifier combos still behave normally.",
+  },
+  {
+    icon: Scroll,
+    title: "Key Scroll",
+    description:
+      "Key Scroll lets plain arrow keys pass through to the browser so the page can scroll and focused fields use native navigation, while the virtual keyboard still highlights the pressed arrow key.",
   },
   {
     icon: RotateCcw,

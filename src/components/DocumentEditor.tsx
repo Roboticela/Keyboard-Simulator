@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, forwardRef } from "react";
 import { motion } from "framer-motion";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useKeyboardInput } from "@/contexts/KeyboardInputContext";
@@ -13,6 +13,7 @@ import {
   type EditorSnapshot,
 } from "@/lib/document-editor-actions";
 import { useAppReset } from "@/contexts/AppResetContext";
+import { useMouse } from "@/contexts/MouseContext";
 import { EMPTY_EDITOR_SNAPSHOT } from "@/lib/app-defaults";
 
 const dbg = createDebugLogger('DocumentEditor');
@@ -112,10 +113,10 @@ function getSelectionRects(element: HTMLTextAreaElement, start: number, end: num
   return rects;
 }
 
-const DocumentEditor = ({ 
-  isFullscreen = false, 
-  onToggleFullscreen
-}: DocumentEditorProps) => {
+const DocumentEditor = forwardRef<HTMLDivElement, DocumentEditorProps>(function DocumentEditor(
+  { isFullscreen = false, onToggleFullscreen },
+  forwardedRef,
+) {
   const [text, setText] = useState('');
   const { insert, toggleInsert } = useKeyboardLock();
   // insert lock ON = overwrite mode (matches keyboard LED / OVR convention)
@@ -131,8 +132,18 @@ const DocumentEditor = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const setContainerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      containerRef.current = node;
+      if (typeof forwardedRef === "function") forwardedRef(node);
+      else if (forwardedRef) forwardedRef.current = node;
+    },
+    [forwardedRef],
+  );
   const { subscribe } = useKeyboardInput();
   const { registerComponentReset } = useAppReset();
+  const { mouseEnabled } = useMouse();
+  const editorCursor = mouseEnabled ? "none" : isOverwrite ? "cell" : "text";
   
   // Use refs to access current state values without causing re-subscriptions
   const textRef = useRef(text);
@@ -978,11 +989,11 @@ const DocumentEditor = ({
 
   return (
     <motion.div
-      ref={containerRef}
+      ref={setContainerRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="h-full flex flex-col relative w-full bg-card/40 backdrop-blur-md rounded-xl transition-all duration-300 ease-in-out overflow-hidden group"
+      className={`h-full flex flex-col relative w-full bg-card/40 backdrop-blur-md rounded-xl transition-all duration-300 ease-in-out overflow-hidden group${mouseEnabled ? " cursor-none [&_*]:!cursor-none" : ""}`}
     >
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -1046,7 +1057,7 @@ const DocumentEditor = ({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.2 }}
         className="flex-1 pl-6 pr-2 overflow-hidden relative"
-        style={{ cursor: isOverwrite ? 'cell' : 'text' }}
+        style={{ cursor: editorCursor }}
       >
         <div className="h-full overflow-auto custom-scrollbar" onScroll={handleScroll}>
           <div className="relative w-full min-h-full">
@@ -1065,7 +1076,7 @@ const DocumentEditor = ({
             style={{
               wordWrap: 'break-word',
               overflowWrap: 'break-word',
-              cursor: isOverwrite ? 'cell' : 'text',
+              cursor: editorCursor,
               caretColor: 'transparent',
               lineHeight: '1.5',
               padding: 0,
@@ -1164,6 +1175,6 @@ const DocumentEditor = ({
       `}</style>
     </motion.div>
   );
-};
+});
 
 export default DocumentEditor;

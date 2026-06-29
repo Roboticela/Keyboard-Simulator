@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Routes, Route } from "react-router-dom";
 import { motion } from "framer-motion";
 import Seo from "@/components/Seo";
@@ -6,8 +6,10 @@ import AppHeader from "@/components/AppHeader";
 import DocumentEditor from "@/components/DocumentEditor";
 import StatusControls from "@/components/StatusControls";
 import Keyboard from "@/components/Keyboard";
+import VirtualMouseCursor from "@/components/VirtualMouseCursor";
 import { useFullscreen } from "@/contexts/FullscreenContext";
 import { useKeyboardView } from "@/contexts/KeyboardViewContext";
+import { useMouse } from "@/contexts/MouseContext";
 import { X, RotateCcw } from "lucide-react";
 import GamesPage from "@/pages/GamesPage";
 import GamePage from "@/pages/GamePage";
@@ -15,6 +17,8 @@ import GamePage from "@/pages/GamePage";
 function MainPage() {
   const { fullscreenEnabled, setFullscreenEnabled } = useFullscreen();
   const { resetView } = useKeyboardView();
+  const { mouseEnabled } = useMouse();
+  const documentEditorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!fullscreenEnabled) return;
@@ -83,8 +87,8 @@ function MainPage() {
       <AppHeader />
       <div className="flex flex-col lg:flex-row gap-2 sm:gap-4 p-2 sm:p-4 min-h-[calc(100vh-3.5rem)] overflow-x-hidden overflow-y-auto">
         <div className="flex-[0.8] flex flex-col gap-2 sm:gap-4 min-w-0">
-          <div className="flex-[0.3] min-h-0">
-            <DocumentEditor />
+          <div className={`flex-[0.3] min-h-0 ${mouseEnabled ? "cursor-none" : ""}`}>
+            <DocumentEditor ref={documentEditorRef} />
           </div>
           <div className="flex-[0.7] min-h-0">
             <Keyboard />
@@ -94,6 +98,7 @@ function MainPage() {
           <StatusControls />
         </div>
       </div>
+      <VirtualMouseCursor documentRef={documentEditorRef} />
     </div>
   );
 }

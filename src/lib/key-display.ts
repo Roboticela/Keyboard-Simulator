@@ -41,12 +41,24 @@ export function isMetaKeyEvent(key: string, code: string): boolean {
 
 const NAV_ARROW_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 
-/** When Arrow mode is on, plain arrow keys should reach the browser (scroll, native focus nav). */
+/** When Key Scroll mode is on, plain arrow keys should reach the browser (scroll, native focus nav). */
 export function shouldPropagateNavArrowToBrowser(
   key: string,
   arrowEnabled: boolean,
   modifiers: Partial<KeyModifiers>,
 ): boolean {
   if (!arrowEnabled || !NAV_ARROW_KEYS.has(key)) return false;
+  return !modifiers.ctrl && !modifiers.meta && !modifiers.alt && !modifiers.fn;
+}
+
+/** When Key Mouse mode is on, plain arrow keys move the virtual cursor instead of the document. */
+export function shouldControlVirtualMouseWithArrow(
+  key: string,
+  keyboardMouseEnabled: boolean,
+  mouseEnabled: boolean,
+  modifiers: Partial<KeyModifiers>,
+): boolean {
+  if (!keyboardMouseEnabled || !mouseEnabled) return false;
+  if (!NAV_ARROW_KEYS.has(key)) return false;
   return !modifiers.ctrl && !modifiers.meta && !modifiers.alt && !modifiers.fn;
 }

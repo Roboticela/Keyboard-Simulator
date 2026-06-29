@@ -1056,11 +1056,11 @@ const DocumentEditor = forwardRef<HTMLDivElement, DocumentEditorProps>(function 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.2 }}
-        className="flex-1 pl-6 pr-2 overflow-hidden relative"
+        className="flex-1 min-h-0 pl-6 pr-2 overflow-hidden relative"
         style={{ cursor: editorCursor }}
       >
-        <div className="h-full overflow-auto custom-scrollbar" onScroll={handleScroll}>
-          <div className="relative w-full min-h-full">
+        <div className="h-full min-h-0 overflow-auto custom-scrollbar" onScroll={handleScroll}>
+          <div className="relative w-full h-full min-h-full">
           <textarea
             ref={textareaRef}
             value={text}
@@ -1070,7 +1070,7 @@ const DocumentEditor = forwardRef<HTMLDivElement, DocumentEditorProps>(function 
             onClick={handleClick}
             onMouseUp={handleClick}
             onSelect={handleSelect}
-            className="document-editor-textarea w-full min-h-full font-mono text-xs sm:text-sm md:text-base leading-relaxed bg-transparent text-foreground resize-none outline-none border-none focus:ring-0 focus:outline-none whitespace-pre-wrap break-words hide-scrollbar block"
+            className="document-editor-textarea w-full h-full min-h-full font-mono text-xs sm:text-sm md:text-base leading-relaxed bg-transparent text-foreground resize-none outline-none border-none focus:ring-0 focus:outline-none whitespace-pre-wrap break-words hide-scrollbar block"
             placeholder="Start typing... Press Insert to toggle overwrite mode"
             spellCheck={false}
             style={{

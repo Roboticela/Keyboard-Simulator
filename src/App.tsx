@@ -87,10 +87,10 @@ function MainPage() {
       <AppHeader />
       <div className="flex flex-col lg:flex-row gap-2 sm:gap-4 p-2 sm:p-4 min-h-[calc(100vh-3.5rem)] overflow-x-hidden overflow-y-auto">
         <div className="flex-[0.8] flex flex-col gap-2 sm:gap-4 min-w-0">
-          <div className={`flex-[0.3] min-h-0 ${mouseEnabled ? "cursor-none" : ""}`}>
+          <div className={`flex-[0.42] min-h-[220px] sm:min-h-[260px] lg:min-h-0 ${mouseEnabled ? "cursor-none" : ""}`}>
             <DocumentEditor ref={documentEditorRef} />
           </div>
-          <div className="flex-[0.7] min-h-0">
+          <div className="flex-[0.58] min-h-0">
             <Keyboard />
           </div>
         </div>

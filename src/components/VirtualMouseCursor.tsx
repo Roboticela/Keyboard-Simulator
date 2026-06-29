@@ -115,8 +115,6 @@ export default function VirtualMouseCursor({ documentRef }: VirtualMouseCursorPr
 
     seedCenterPosition();
 
-    if (keyboardMouseEnabled) return;
-
     const handleMove = (e: MouseEvent) => {
       updateFromClient(e.clientX, e.clientY);
     };
@@ -136,12 +134,7 @@ export default function VirtualMouseCursor({ documentRef }: VirtualMouseCursorPr
       window.removeEventListener("scroll", reclamp, true);
       window.removeEventListener("resize", reclamp);
     };
-  }, [mouseEnabled, keyboardMouseEnabled, updateFromClient, seedCenterPosition]);
-
-  useEffect(() => {
-    if (!mouseEnabled || !keyboardMouseEnabled) return;
-    seedCenterPosition();
-  }, [keyboardMouseEnabled, mouseEnabled, seedCenterPosition]);
+  }, [mouseEnabled, updateFromClient, seedCenterPosition]);
 
   useEffect(() => {
     if (!mouseEnabled || !keyboardMouseEnabled) return;
